@@ -1,0 +1,49 @@
+# Environnements virtuels
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Sorties d'expériences.
+# Les figures et tableaux sont entierement regenerables en relancant les
+# scripts de experiments/ : on ne versionne pas les artefacts, on versionne
+# le code qui les produit. Les .gitkeep gardent l'arborescence.
+results/figures/*
+results/tables/*
+!results/**/.gitkeep
+
+# Exception : les tableaux et figures effectivement cites dans le rapport
+# final doivent etre versionnes au moment de la remise, sinon le rapport
+# renvoie a des fichiers absents du depot. Les ajouter explicitement avec
+# `git add -f results/figures/<fichier>` a ce moment-la.
+
+# Rapport LaTeX : sorties de compilation
+report/*.aux
+report/*.log
+report/*.out
+report/*.bbl
+report/*.blg
+report/*.fdb_latexmk
+report/*.fls
+report/*.synctex.gz
+report/*.toc
+
+# Systeme
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Fichiers temporaires bureautiques
+~$*
+
+# Outils d'assistance locaux
+.claude/

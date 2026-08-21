@@ -1,0 +1,19 @@
+# Dependances du projet, alignees sur la boite a outils imposee en
+# section 10.3 du plan de projet (Theme 3, Groupe 1).
+#
+# Contrainte a retenir : le sujet interdit un solveur boite noire. scipy est
+# present pour l'algebre lineaire (rang, conditionnement, valeurs propres) et
+# les lois de probabilite, PAS pour scipy.optimize. La descente de gradient
+# projetee doit etre ecrite a la main dans src/optimization/.
+
+numpy>=2.0
+scipy>=1.14
+networkx>=3.3
+pandas>=2.2
+matplotlib>=3.9
+
+# Exploration libre (notebooks/). N'entre jamais dans le pipeline livre.
+jupyter>=1.1
+
+# Verification du code (tests/).
+pytest>=8.3

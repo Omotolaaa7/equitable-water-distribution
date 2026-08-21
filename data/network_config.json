@@ -1,0 +1,77 @@
+{
+  "_statut": "GABARIT PROVISOIRE — à valider ou remplacer par M1, puis par le groupe entier. Ces valeurs ne sont pas des données réelles : le sujet n'en exige pas, mais la section 5.2 du plan impose que la construction du réseau synthétique soit expliquée et défendue dans le rapport. Tant que M1 n'a pas figé cette topologie, rien d'autre ne peut sérieusement démarrer (section 12 du plan).",
+
+  "_unites": {
+    "debit": "m³/h",
+    "cout": "unité de coût par (m³/h)² — c_e strictement positif, condition de la convexité de J",
+    "demande": "m³/h"
+  },
+
+  "_a_defendre_dans_le_rapport": [
+    "Pourquoi ce nombre de quartiers et de réservoirs (le plan recommande 8 à 15 quartiers, 2 à 3 réservoirs)",
+    "Pourquoi cette orientation des arêtes, et ce qu'elle implique sur le signe des débits",
+    "Pourquoi σ_i vaut 12 % à 28 % de µ_i — coefficient de variation plausible pour une demande domestique",
+    "Pourquoi une corrélation modérée entre quartiers géographiquement proches, et son effet sur la variance agrégée",
+    "Le choix Σ offre = Σ µ_i : la conservation Aq = b n'est exactement satisfiable que si l'offre couvre la demande. Sur un scénario tiré au hasard, Σ D_i ≠ Σ offre : M1 et M4 doivent trancher entre renormaliser l'offre, introduire un nœud de délestage, ou accepter une violation résiduelle mesurée par ‖Aq − b‖."
+  ],
+
+  "reservoirs": [
+    { "id": "R1", "nom": "Réservoir Nord", "offre": 600.0 },
+    { "id": "R2", "nom": "Réservoir Sud",  "offre": 460.0 }
+  ],
+
+  "quartiers": [
+    { "id": "Q1",  "nom": "Quartier 1",  "mu": 120.0, "sigma": 18.0 },
+    { "id": "Q2",  "nom": "Quartier 2",  "mu":  95.0, "sigma": 19.0 },
+    { "id": "Q3",  "nom": "Quartier 3",  "mu": 140.0, "sigma": 17.0 },
+    { "id": "Q4",  "nom": "Quartier 4",  "mu":  80.0, "sigma": 20.0 },
+    { "id": "Q5",  "nom": "Quartier 5",  "mu": 160.0, "sigma": 24.0 },
+    { "id": "Q6",  "nom": "Quartier 6",  "mu": 110.0, "sigma": 22.0 },
+    { "id": "Q7",  "nom": "Quartier 7",  "mu":  75.0, "sigma": 21.0 },
+    { "id": "Q8",  "nom": "Quartier 8",  "mu": 130.0, "sigma": 16.0 },
+    { "id": "Q9",  "nom": "Quartier 9",  "mu":  90.0, "sigma": 25.0 },
+    { "id": "Q10", "nom": "Quartier 10", "mu":  60.0, "sigma": 17.0 }
+  ],
+
+  "conduites": [
+    { "source": "R1", "cible": "Q1",  "capacite": 320.0, "cout": 1.0 },
+    { "source": "R1", "cible": "Q2",  "capacite": 260.0, "cout": 1.4 },
+    { "source": "R1", "cible": "Q3",  "capacite": 300.0, "cout": 0.9 },
+    { "source": "R1", "cible": "Q4",  "capacite": 200.0, "cout": 1.8 },
+    { "source": "R2", "cible": "Q5",  "capacite": 340.0, "cout": 0.8 },
+    { "source": "R2", "cible": "Q6",  "capacite": 240.0, "cout": 1.3 },
+    { "source": "R2", "cible": "Q7",  "capacite": 180.0, "cout": 2.1 },
+    { "source": "Q1", "cible": "Q5",  "capacite": 150.0, "cout": 1.6 },
+    { "source": "Q2", "cible": "Q3",  "capacite": 120.0, "cout": 1.2 },
+    { "source": "Q3", "cible": "Q8",  "capacite": 200.0, "cout": 1.1 },
+    { "source": "Q4", "cible": "Q8",  "capacite": 140.0, "cout": 1.9 },
+    { "source": "Q5", "cible": "Q6",  "capacite": 160.0, "cout": 1.5 },
+    { "source": "Q6", "cible": "Q9",  "capacite": 130.0, "cout": 1.7 },
+    { "source": "Q7", "cible": "Q9",  "capacite": 110.0, "cout": 2.3 },
+    { "source": "Q9", "cible": "Q10", "capacite": 100.0, "cout": 2.5 }
+  ],
+
+  "_point_de_fragilite_attendu": "Q10 n'est relié au reste du réseau que par la conduite Q9 → Q10. C'est volontaire : la section 2 du plan demande d'identifier les quartiers reliés par une seule conduite. graph_analysis.detecter_points_de_fragilite doit le retrouver seul — c'est le cas de test naturel de ce module.",
+
+  "correlations_voisinage": [
+    { "quartiers": ["Q1", "Q2", "Q3"], "rho": 0.40, "motif": "même bassin versant, exposition thermique commune" },
+    { "quartiers": ["Q5", "Q6", "Q7"], "rho": 0.35, "motif": "quartiers mitoyens desservis par le même axe" },
+    { "quartiers": ["Q9", "Q10"],      "rho": 0.30, "motif": "report de demande en cas de coupure sur l'antenne Q9 → Q10" }
+  ],
+
+  "strategie_de_reference": {
+    "nom": "distribution proportionnelle à la demande moyenne",
+    "definition": "chaque quartier reçoit une part de l'offre totale proportionnelle à son µ_i, indépendamment du coût des conduites empruntées",
+    "role": "c'est la pratique actuelle de la société, et la baseline imposée par le sujet pour la comparaison chiffrée finale"
+  },
+
+  "hyperparametres_par_defaut": {
+    "_note": "Valeurs de départ uniquement. µ_penalisation et eta doivent être justifiés par M4 à partir de la borne théorique η < 2/L, L étant la plus grande valeur propre de 2C + 2µAᵀA. Les fixer arbitrairement est listé comme erreur à éviter en section 14 du plan.",
+    "mu_penalisation": 100.0,
+    "eta": null,
+    "max_iterations": 10000,
+    "tolerance_gradient": 1e-8,
+    "n_tirages_monte_carlo": 1000,
+    "graine_aleatoire": 42
+  }
+}
