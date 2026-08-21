@@ -35,9 +35,9 @@ Puis une pull request sur GitHub, relue par au moins **une autre personne** avan
 À l'infinitif ou à la troisième personne du présent, en français, une ligne, ce que fait le
 commit et non ce qu'on a touché :
 
-- `Dérive le gradient du terme de pénalisation et le vérifie par différences finies`
-- `update objective.py`
-- `fix`
+- À faire : `Dérive le gradient du terme de pénalisation et le vérifie par différences finies`
+- À éviter : `update objective.py`, qui nomme le fichier au lieu du changement
+- À éviter : `fix`, qui ne dit rien du tout
 
 Si le commit demande une explication, elle va dans le corps du message, après une ligne
 vide, et non dans un commentaire de code.

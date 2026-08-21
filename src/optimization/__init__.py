@@ -3,7 +3,7 @@
 Responsables : M4 (dérivation théorique) et M5 (implémentation).
 Rubrique concernée : « Optimisation », 20 % de la note.
 
-⚠ JALON DE PASSAGE OBLIGATOIRE ⚠
+JALON DE PASSAGE OBLIGATOIRE
 
 Ce paquet est le seul du dépôt sur lequel le plan de projet pose un verrou
 explicite (section 16) :

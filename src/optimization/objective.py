@@ -4,8 +4,8 @@ Responsable : M5 pour l'implémentation, à partir des dérivations de M4.
 Dépend de : les Étapes 6, 7 et 8 (formulation, pénalisation, gradient).
 Alimente : ``gradient_descent`` et toutes les expériences.
 
-⚠ Ne rien coder ici avant que la dérivation de M4 soit écrite et relue par
-deux autres membres. Voir le jalon, section 16 du plan.
+Attention : ne rien coder ici avant que la dérivation de M4 soit écrite et
+relue par deux autres membres. Voir le jalon, section 16 du plan.
 
 ---------------------------------------------------------------------------
 Le contenu mathématique que ce module implémente

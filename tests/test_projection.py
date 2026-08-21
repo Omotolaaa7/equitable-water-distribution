@@ -1,6 +1,6 @@
 """Garde-fous sur la projection et la descente, périmètre M5.
 
-⚠ Ces tests restent inactifs tant que le jalon de la section 16 n'est pas
+Ces tests restent inactifs tant que le jalon de la section 16 n'est pas
 franchi. Les écrire avant de coder le solveur est en revanche utile : ils
 fixent noir sur blanc ce que le solveur devra vérifier.
 """

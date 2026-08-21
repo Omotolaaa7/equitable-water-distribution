@@ -39,7 +39,7 @@ scénarios de demande simulés par Monte-Carlo.
 
 ---
 
-## ⚠ Règle qui gouverne tout ce dépôt
+## Règle qui gouverne tout ce dépôt
 
 > Le code ne précède jamais la théorie.
 

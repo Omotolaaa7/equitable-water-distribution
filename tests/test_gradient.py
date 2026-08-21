@@ -1,6 +1,6 @@
 """Contrôle de la dérivation du gradient, périmètre M5, d'après M4.
 
-⚠ Bloqué par le jalon section 16. Ce fichier existe pour rappeler que la
+Bloqué par le jalon section 16. Ce fichier existe pour rappeler que la
 première chose à faire après avoir codé ``gradient`` est de le confronter aux
 différences finies, avant de lancer la moindre expérience.
 """

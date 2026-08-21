@@ -4,8 +4,8 @@ Responsable : M5 pour l'implémentation, à partir des dérivations de M4.
 Dépend de : ``objective`` (Étape 8) et du conditionnement calculé par M2.
 Étape 9 du pipeline.
 
-⚠ Ne rien coder ici avant que les huit points du jalon (section 16 du plan)
-soient cochés.
+Attention : ne rien coder ici avant que les huit points du jalon (section 16
+du plan) soient cochés.
 
 ---------------------------------------------------------------------------
 L'algorithme, tel qu'il doit figurer en pseudo-code dans le rapport
