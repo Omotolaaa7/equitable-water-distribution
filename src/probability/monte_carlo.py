@@ -42,13 +42,13 @@ def generer_scenarios(
     Args:
         reseau: le ``Reseau``.
         n_tirages: nombre de scénarios.
-        graine: graine du générateur. Fixée par défaut dans la configuration —
-            un résultat non reproductible n'est pas un résultat.
+        graine: graine du générateur. Fixée par défaut dans la configuration,
+            car un résultat non reproductible n'est pas un résultat.
 
     Returns:
         Un tableau (n_tirages, |quartiers|).
     """
-    raise NotImplementedError("M5 avec M3 — Étape 5.")
+    raise NotImplementedError("M5 avec M3, Étape 5.")
 
 
 def agreger(valeurs: np.ndarray, quantiles=(0.05, 0.25, 0.5, 0.75, 0.95)) -> StatistiquesMonteCarlo:
@@ -57,10 +57,10 @@ def agreger(valeurs: np.ndarray, quantiles=(0.05, 0.25, 0.5, 0.75, 0.95)) -> Sta
     L'erreur standard vaut σ̂/√N. C'est la forme concrète du résultat théorique
     à établir à l'Étape 5 : l'erreur d'estimation Monte-Carlo décroît en 1/√N.
     Conséquence à énoncer explicitement dans le rapport, parce qu'elle est
-    contre-intuitive et qu'elle justifie le dimensionnement retenu — diviser
+    contre-intuitive et qu'elle justifie le dimensionnement retenu : diviser
     l'erreur par deux coûte *quatre* fois plus de tirages.
     """
-    raise NotImplementedError("M5 — Étape 5.")
+    raise NotImplementedError("M5, Étape 5.")
 
 
 def erreur_estimation(ecart_type: float, n_tirages: int) -> float:
@@ -70,7 +70,7 @@ def erreur_estimation(ecart_type: float, n_tirages: int) -> float:
     l'Expérience 2 confronte à la décroissance mesurée quand N augmente. La
     séparer permet de la tester seule.
     """
-    raise NotImplementedError("M5 — Étape 5.")
+    raise NotImplementedError("M5, Étape 5.")
 
 
 def convergence_par_taille(
@@ -89,4 +89,4 @@ def convergence_par_taille(
     Returns:
         Les statistiques par taille d'échantillon.
     """
-    raise NotImplementedError("M5 — Étape 5, support de l'Expérience 2.")
+    raise NotImplementedError("M5, Étape 5, support de l'Expérience 2.")

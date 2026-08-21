@@ -1,8 +1,8 @@
-"""Contrôle de la dérivation du gradient — périmètre M5, d'après M4.
+"""Contrôle de la dérivation du gradient, périmètre M5, d'après M4.
 
 ⚠ Bloqué par le jalon section 16. Ce fichier existe pour rappeler que la
 première chose à faire après avoir codé ``gradient`` est de le confronter aux
-différences finies — avant de lancer la moindre expérience.
+différences finies, avant de lancer la moindre expérience.
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ def test_gradient_analytique_contre_differences_finies():
 
     Attrape les trois erreurs listées en section 14 du plan : facteur 2 oublié,
     mauvaise transposition de A, signe de b inversé. Aucune des trois ne fait
-    planter le code — elles produisent un q* faux et plausible, et invalident
+    planter le code : elles produisent un q* faux et plausible, et invalident
     silencieusement les six expériences.
     """
 
@@ -28,7 +28,7 @@ def test_hessienne_est_definie_positive():
     Contrepartie numérique de la démonstration de convexité de M4. Si ce test
     échoue alors que la démonstration tient, l'erreur est dans le code ; s'il
     échoue et que c_e n'est pas strictement positif, c'est le réseau qui est en
-    faute — et ``valider_reseau`` aurait dû l'attraper plus tôt.
+    faute, et ``valider_reseau`` aurait dû l'attraper plus tôt.
     """
 
 

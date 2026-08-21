@@ -1,7 +1,7 @@
 """Génération et validation du réseau synthétique.
 
 Responsable : M1 (topologie, hypothèses physiques, orientation des arêtes).
-Dépendances : aucune — c'est le point de départ du projet.
+Dépendances : aucune, c'est le point de départ du projet.
 Étape 1 du pipeline (section 2 du plan de projet).
 
 Le sujet n'exige pas de données réelles. La section 5.2 du plan recommande
@@ -13,8 +13,8 @@ Ce module a deux usages distincts :
 
 1. charger et *valider* ``data/network_config.json``, le réseau de référence
    figé par M1, utilisé par toutes les expériences sauf la cinquième ;
-2. générer des *variantes de maillage* du même réseau — de très peu de
-   conduites à un réseau bien maillé — pour l'Expérience 5, qui mesure l'effet
+2. générer des *variantes de maillage* du même réseau (de très peu de
+   conduites à un réseau bien maillé) pour l'Expérience 5, qui mesure l'effet
    du maillage sur le conditionnement de A.
 
 Ces variantes ne sont pas décoratives : sans elles, l'Expérience 5 n'a rien à
@@ -36,7 +36,7 @@ class Conduite:
     L'orientation porte une convention physique que M1 doit fixer et défendre :
     un débit q_e positif signifie que l'eau circule de ``source`` vers
     ``cible``. Un débit négatif, si le modèle l'autorisait, signifierait un
-    écoulement inverse — mais la contrainte q ≥ 0 l'interdit, ce qui revient à
+    écoulement inverse, mais la contrainte q ≥ 0 l'interdit, ce qui revient à
     supposer que le sens d'écoulement de chaque conduite est connu d'avance.
     C'est une hypothèse de modélisation à assumer explicitement dans le rapport.
     """
@@ -106,7 +106,7 @@ def charger_reseau(chemin: Path | str) -> Reseau:
         ValueError: si la configuration est incohérente (voir ``valider_reseau``).
     """
     raise NotImplementedError(
-        "M1 — Étape 1. Lire le JSON et le convertir en Reseau, puis appeler "
+        "M1, Étape 1. Lire le JSON et le convertir en Reseau, puis appeler "
         "valider_reseau avant de le retourner."
     )
 
@@ -120,12 +120,12 @@ def valider_reseau(reseau: Reseau) -> list[str]:
 
     Invariants à contrôler :
 
-    - tout coût c_e est strictement positif — c'est *exactement* la condition
+    - tout coût c_e est strictement positif : c'est *exactement* la condition
       qui rend Σ c_e q_e² convexe (Étape 6). Un c_e nul ou négatif invaliderait
       la démonstration de convexité de M4 sans qu'aucune erreur ne se déclenche ;
     - toute capacité est strictement positive ;
     - toute conduite référence des nœuds qui existent ;
-    - tout σ_i est strictement positif — un σ_i nul ferait de D_i une constante
+    - tout σ_i est strictement positif : un σ_i nul ferait de D_i une constante
       et viderait le volet Monte-Carlo de son sens ;
     - aucun quartier n'est orphelin (degré ≥ 1) ;
     - le rapport Σ offre / Σ µ_i est signalé s'il s'écarte de 1, puisque la
@@ -135,7 +135,7 @@ def valider_reseau(reseau: Reseau) -> list[str]:
     Returns:
         La liste des anomalies détectées, vide si le réseau est sain.
     """
-    raise NotImplementedError("M1 — Étape 1.")
+    raise NotImplementedError("M1, Étape 1.")
 
 
 def generer_variantes_de_maillage(
@@ -145,7 +145,7 @@ def generer_variantes_de_maillage(
 
     Pour l'Expérience 5 : on part du même ensemble de nœuds et de la même
     demande, et on fait varier le nombre de conduites entre quartiers. Le
-    réseau le plus pauvre est un arbre couvrant — le minimum pour rester
+    réseau le plus pauvre est un arbre couvrant, soit le minimum pour rester
     connexe ; le plus riche ajoute des conduites transversales.
 
     L'attente théorique, à confronter aux mesures : moins il y a de conduites
@@ -163,7 +163,7 @@ def generer_variantes_de_maillage(
         de conditionnement compare deux choses différentes.
     """
     raise NotImplementedError(
-        "M1 avec M2 — support de l'Expérience 5. Garantir la connexité de "
+        "M1 avec M2, support de l'Expérience 5. Garantir la connexité de "
         "chaque variante : c'est ce qui rend les conditionnements comparables."
     )
 

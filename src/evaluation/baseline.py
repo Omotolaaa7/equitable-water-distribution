@@ -27,13 +27,13 @@ def distribution_proportionnelle(reseau, demandes: np.ndarray) -> np.ndarray:
 
     Chaque quartier reçoit une part de l'offre proportionnelle à sa demande.
     Reste à traduire cette règle, qui porte sur les *quartiers*, en débits sur
-    les *conduites* — car c'est sur les conduites que se mesure le coût
+    les *conduites*, car c'est sur les conduites que se mesure le coût
     Σ c_e q_e², et donc le seul niveau où la comparaison avec q* a un sens.
 
     Ce passage n'est pas unique dès que le réseau contient des cycles :
     plusieurs répartitions de débits acheminent la même quantité à chaque
-    quartier. La règle de désambiguïsation retenue — répartition uniforme entre
-    les chemins, ou par plus court chemin depuis le réservoir le plus proche —
+    quartier. La règle de désambiguïsation retenue (répartition uniforme entre
+    les chemins, ou par plus court chemin depuis le réservoir le plus proche)
     est une décision de modélisation qui doit être écrite et défendue dans le
     rapport, pas tranchée en silence dans le code. C'est précisément parce que
     ce choix existe qu'il y a quelque chose à optimiser.
@@ -46,5 +46,5 @@ def distribution_proportionnelle(reseau, demandes: np.ndarray) -> np.ndarray:
         Les débits de référence, longueur |E|, comparables à q*.
     """
     raise NotImplementedError(
-        "M6 — Étape 11. Fixer et documenter la règle de passage quartiers → conduites."
+        "M6, Étape 11. Fixer et documenter la règle de passage quartiers → conduites."
     )

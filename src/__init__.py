@@ -1,4 +1,4 @@
-"""Code source du projet — Thème 3, Groupe 1.
+"""Code source du projet : Thème 3, Groupe 1.
 
 Organisation calquée sur les cinq volets du développement mathématique exigés
 par le sujet :

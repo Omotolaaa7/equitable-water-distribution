@@ -29,7 +29,7 @@ def est_connexe(graphe) -> bool:
     Returns:
         True si le réseau est faiblement connexe.
     """
-    raise NotImplementedError("M2 — Étape 2.")
+    raise NotImplementedError("M2, Étape 2.")
 
 
 def composantes_connexes(graphe) -> list[set[str]]:
@@ -38,7 +38,7 @@ def composantes_connexes(graphe) -> list[set[str]]:
     Si le réseau n'est pas connexe, le livrable n'est pas « échec » mais
     « zones non connexes identifiées et justifiées » (section 10.5 du plan).
     """
-    raise NotImplementedError("M2 — Étape 2.")
+    raise NotImplementedError("M2, Étape 2.")
 
 
 def detecter_points_de_fragilite(graphe) -> dict[str, list]:
@@ -59,7 +59,7 @@ def detecter_points_de_fragilite(graphe) -> dict[str, list]:
         Un dictionnaire aux clés ``noeuds_degre_1``, ``aretes_pont`` et
         ``points_articulation``.
     """
-    raise NotImplementedError("M2 avec M1 — Étape 2.")
+    raise NotImplementedError("M2 avec M1, Étape 2.")
 
 
 def rang(A: np.ndarray) -> int:
@@ -75,15 +75,15 @@ def rang(A: np.ndarray) -> int:
     conséquence est concrète et doit être discutée : le système Aq = b n'a pas
     de solution unique, il en a tout un espace affine de dimension |E| − n + 1.
     C'est précisément ce qui justifie qu'on *choisisse* parmi ces solutions
-    celle qui minimise Σ c_e q_e² — sans ce déficit de rang, il n'y aurait rien
+    celle qui minimise Σ c_e q_e² : sans ce déficit de rang, il n'y aurait rien
     à optimiser.
 
     Note d'implémentation : ``numpy.linalg.matrix_rank`` décide du rang par un
     seuil sur les valeurs singulières. Sur une matrice mal conditionnée, ce
-    seuil devient discutable — le mentionner dans le rapport plutôt que de
+    seuil devient discutable. Le mentionner dans le rapport plutôt que de
     présenter le rang comme une valeur exacte.
     """
-    raise NotImplementedError("M2 — Étape 3. Démontrer rang(A) = n − k, pas seulement le mesurer.")
+    raise NotImplementedError("M2, Étape 3. Démontrer rang(A) = n − k, pas seulement le mesurer.")
 
 
 def noyau(A: np.ndarray) -> np.ndarray:
@@ -98,7 +98,7 @@ def noyau(A: np.ndarray) -> np.ndarray:
     Sa dimension vaut |E| − rang(A), soit le nombre cyclomatique du graphe :
     le lien entre structure discrète et algèbre est ici littéral.
     """
-    raise NotImplementedError("M2 — Étape 3.")
+    raise NotImplementedError("M2, Étape 3.")
 
 
 def conditionnement(A: np.ndarray) -> float:
@@ -111,7 +111,7 @@ def conditionnement(A: np.ndarray) -> float:
 
         H = 2C + 2µ AᵀA
 
-    qui, elle, est définie positive dès que c_e > 0 — même quand AᵀA est
+    qui, elle, est définie positive dès que c_e > 0, même quand AᵀA est
     singulière. C'est le terme Σ c_e q_e² qui régularise le problème.
 
     Le rapport doit expliciter ce glissement de κ(A) vers κ(H), et le fait que
@@ -126,7 +126,7 @@ def conditionnement(A: np.ndarray) -> float:
         Le conditionnement retenu, dont la définition doit être documentée.
     """
     raise NotImplementedError(
-        "M2 — Étape 3. Livrable : preuve écrite du lien structure/conditionnement."
+        "M2, Étape 3. Livrable : preuve écrite du lien structure/conditionnement."
     )
 
 
@@ -154,4 +154,4 @@ def constante_de_lipschitz(A: np.ndarray, couts: np.ndarray, mu: float) -> float
     Returns:
         L = λ_max(2C + 2µAᵀA).
     """
-    raise NotImplementedError("M2 avec M4 — Étape 3, alimente l'Étape 9.")
+    raise NotImplementedError("M2 avec M4, Étape 3, alimente l'Étape 9.")

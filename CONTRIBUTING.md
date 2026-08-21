@@ -40,7 +40,7 @@ commit et non ce qu'on a touché :
 - `fix`
 
 Si le commit demande une explication, elle va dans le corps du message, après une ligne
-vide — pas dans un commentaire de code.
+vide, et non dans un commentaire de code.
 
 ## La règle qui prime sur toutes les autres
 
@@ -56,7 +56,7 @@ jalon de passage (section 16 du plan, repris dans le README) ne sont pas cochés
 ## Ce qui ne se versionne pas
 
 `results/figures/` et `results/tables/` sont régénérables : on versionne le script qui les
-produit, pas sa sortie. Exception au moment de la remise — les figures effectivement citées
+produit, pas sa sortie. Exception au moment de la remise : les figures effectivement citées
 dans le rapport doivent être ajoutées avec `git add -f`, sinon le rapport final renvoie à
 des fichiers absents du dépôt.
 

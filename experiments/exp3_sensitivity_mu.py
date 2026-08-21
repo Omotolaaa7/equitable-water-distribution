@@ -1,4 +1,4 @@
-"""Expérience 3 — Analyse de sensibilité du paramètre de pénalisation µ.
+"""Expérience 3 : analyse de sensibilité du paramètre de pénalisation µ.
 
 Responsable : M5, interprétation avec M4.
 Dépend de : la dérivation de M4 sur le comportement asymptotique en µ.
@@ -22,7 +22,7 @@ Le compromis à expliciter, en lien direct avec la dérivation de l'Étape 7 :
 augmenter µ resserre la contrainte d'égalité, mais alourdit la plus grande
 valeur propre de la hessienne, donc dégrade κ(H), donc impose un pas plus petit
 via η < 2/L, donc ralentit la convergence. Les deux effets ont la même origine
-algébrique — ce n'est pas une coïncidence expérimentale, et le rapport doit le
+algébrique. Ce n'est pas une coïncidence expérimentale, et le rapport doit le
 dire ainsi.
 
 Attention au protocole : si η est recalculé à partir de 2/L pour chaque µ, le
@@ -36,7 +36,7 @@ import _bootstrap  # noqa: F401
 
 
 def main() -> None:
-    raise NotImplementedError("M5 — Expérience 3.")
+    raise NotImplementedError("M5, Expérience 3.")
 
 
 if __name__ == "__main__":

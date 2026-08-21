@@ -1,7 +1,7 @@
 """Formulation d'optimisation, gradient et descente projetée.
 
 Responsables : M4 (dérivation théorique) et M5 (implémentation).
-Rubrique concernée : « Optimisation » — 20 % de la note.
+Rubrique concernée : « Optimisation », 20 % de la note.
 
 ⚠ JALON DE PASSAGE OBLIGATOIRE ⚠
 

@@ -1,16 +1,16 @@
 {
-  "_statut": "GABARIT PROVISOIRE — à valider ou remplacer par M1, puis par le groupe entier. Ces valeurs ne sont pas des données réelles : le sujet n'en exige pas, mais la section 5.2 du plan impose que la construction du réseau synthétique soit expliquée et défendue dans le rapport. Tant que M1 n'a pas figé cette topologie, rien d'autre ne peut sérieusement démarrer (section 12 du plan).",
+  "_statut": "GABARIT PROVISOIRE, à valider ou remplacer par M1, puis par le groupe entier. Ces valeurs ne sont pas des données réelles : le sujet n'en exige pas, mais la section 5.2 du plan impose que la construction du réseau synthétique soit expliquée et défendue dans le rapport. Tant que M1 n'a pas figé cette topologie, rien d'autre ne peut sérieusement démarrer (section 12 du plan).",
 
   "_unites": {
     "debit": "m³/h",
-    "cout": "unité de coût par (m³/h)² — c_e strictement positif, condition de la convexité de J",
+    "cout": "unité de coût par (m³/h)² ; c_e strictement positif, condition de la convexité de J",
     "demande": "m³/h"
   },
 
   "_a_defendre_dans_le_rapport": [
     "Pourquoi ce nombre de quartiers et de réservoirs (le plan recommande 8 à 15 quartiers, 2 à 3 réservoirs)",
     "Pourquoi cette orientation des arêtes, et ce qu'elle implique sur le signe des débits",
-    "Pourquoi σ_i vaut 12 % à 28 % de µ_i — coefficient de variation plausible pour une demande domestique",
+    "Pourquoi σ_i vaut 12 % à 28 % de µ_i, coefficient de variation plausible pour une demande domestique",
     "Pourquoi une corrélation modérée entre quartiers géographiquement proches, et son effet sur la variance agrégée",
     "Le choix Σ offre = Σ µ_i : la conservation Aq = b n'est exactement satisfiable que si l'offre couvre la demande. Sur un scénario tiré au hasard, Σ D_i ≠ Σ offre : M1 et M4 doivent trancher entre renormaliser l'offre, introduire un nœud de délestage, ou accepter une violation résiduelle mesurée par ‖Aq − b‖."
   ],
@@ -51,7 +51,7 @@
     { "source": "Q9", "cible": "Q10", "capacite": 100.0, "cout": 2.5 }
   ],
 
-  "_point_de_fragilite_attendu": "Q10 n'est relié au reste du réseau que par la conduite Q9 → Q10. C'est volontaire : la section 2 du plan demande d'identifier les quartiers reliés par une seule conduite. graph_analysis.detecter_points_de_fragilite doit le retrouver seul — c'est le cas de test naturel de ce module.",
+  "_point_de_fragilite_attendu": "Q10 n'est relié au reste du réseau que par la conduite Q9 → Q10. C'est volontaire : la section 2 du plan demande d'identifier les quartiers reliés par une seule conduite. graph_analysis.detecter_points_de_fragilite doit le retrouver seul : c'est le cas de test naturel de ce module.",
 
   "correlations_voisinage": [
     { "quartiers": ["Q1", "Q2", "Q3"], "rho": 0.40, "motif": "même bassin versant, exposition thermique commune" },

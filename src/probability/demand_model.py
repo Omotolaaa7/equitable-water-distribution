@@ -5,7 +5,7 @@ Dépend de : la topologie de M1 (nombre de quartiers, ordres de grandeur).
 Alimente : M5 (paramètres nécessaires au Monte-Carlo).
 Étape 4 du pipeline.
 
-Le sujet impose la loi gaussienne — mais l'imposer n'est pas la justifier. La
+Le sujet impose la loi gaussienne, mais l'imposer n'est pas la justifier. La
 section 1.7 du plan est explicite : contrairement au Thème 1, le sujet ne
 réclame pas de démonstration par le théorème central limite, mais une
 justification reste attendue, et la négliger est listée en section 14 parmi les
@@ -31,7 +31,7 @@ def parametres_demande(reseau) -> tuple[np.ndarray, np.ndarray]:
     Returns:
         Le couple (mu, sigma), chacun de longueur |quartiers|.
     """
-    raise NotImplementedError("M3 — Étape 4.")
+    raise NotImplementedError("M3, Étape 4.")
 
 
 def matrice_covariance(reseau) -> np.ndarray:
@@ -53,7 +53,7 @@ def matrice_covariance(reseau) -> np.ndarray:
     Returns:
         Σ, de forme (|quartiers|, |quartiers|).
     """
-    raise NotImplementedError("M3 — Étape 4.")
+    raise NotImplementedError("M3, Étape 4.")
 
 
 def echantillonner(
@@ -78,7 +78,7 @@ def echantillonner(
     Returns:
         Un tableau (n_tirages, |quartiers|).
     """
-    raise NotImplementedError("M3 avec M5 — Étape 4.")
+    raise NotImplementedError("M3 avec M5, Étape 4.")
 
 
 def estimateur_moyenne(echantillon: np.ndarray) -> np.ndarray:
@@ -90,7 +90,7 @@ def estimateur_moyenne(echantillon: np.ndarray) -> np.ndarray:
 
     estimateur sans biais de µ_i.
     """
-    raise NotImplementedError("M3 — Étape 4.")
+    raise NotImplementedError("M3, Étape 4.")
 
 
 def estimateur_variance(echantillon: np.ndarray) -> np.ndarray:
@@ -99,11 +99,11 @@ def estimateur_variance(echantillon: np.ndarray) -> np.ndarray:
         σ̂_i² = (1/(n−1)) Σ_k (D_i^(k) − µ̂_i)²
 
     Le diviseur n−1 et non n : c'est la correction de Bessel, et c'est ce qui
-    rend l'estimateur sans biais. Numpy utilise n par défaut — il faut donc
+    rend l'estimateur sans biais. Numpy utilise n par défaut : il faut donc
     passer ``ddof=1`` explicitement. C'est une erreur silencieuse classique, et
     elle se propage jusque dans les intervalles de confiance.
     """
-    raise NotImplementedError("M3 — Étape 4.")
+    raise NotImplementedError("M3, Étape 4.")
 
 
 def intervalle_confiance_moyenne(
@@ -127,7 +127,7 @@ def intervalle_confiance_moyenne(
     Returns:
         Le couple (bornes_inf, bornes_sup).
     """
-    raise NotImplementedError("M3 — Étape 4. Livrable : tableau des estimateurs et IC.")
+    raise NotImplementedError("M3, Étape 4. Livrable : tableau des estimateurs et IC.")
 
 
 def correlations_empiriques(echantillon: np.ndarray) -> np.ndarray:
@@ -138,7 +138,7 @@ def correlations_empiriques(echantillon: np.ndarray) -> np.ndarray:
     signale une erreur dans ``matrice_covariance`` ou dans l'échantillonnage,
     et vaut mieux d'être détecté ici que six expériences plus loin.
     """
-    raise NotImplementedError("M3 — Étape 4.")
+    raise NotImplementedError("M3, Étape 4.")
 
 
 def quartiers_atypiques(
@@ -155,4 +155,4 @@ def quartiers_atypiques(
     Returns:
         Fréquence de dépassement par quartier.
     """
-    raise NotImplementedError("M3 — Expérience 6.")
+    raise NotImplementedError("M3, Expérience 6.")

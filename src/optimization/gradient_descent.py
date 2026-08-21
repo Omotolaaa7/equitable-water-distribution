@@ -22,8 +22,8 @@ Deux points que le rapport doit justifier, pas seulement énoncer :
 1. **Pourquoi max(·, 0) est la projection euclidienne sur {q ≥ 0}.** Le
    problème min_{y ≥ 0} ‖y − x‖² se sépare composante par composante : chaque
    min_{y_e ≥ 0} (y_e − x_e)² est atteint en x_e si x_e ≥ 0, en 0 sinon. C'est
-   la séparabilité de l'orthant positif qui rend la projection aussi simple —
-   elle ne le serait pas sur un ensemble couplant les composantes, comme les
+   la séparabilité de l'orthant positif qui rend la projection aussi simple.
+   Elle ne le serait pas sur un ensemble couplant les composantes, comme les
    contraintes de capacité q_e ≤ cap_e si le groupe décidait de les activer.
 
 2. **Pourquoi η < 2/L garantit la convergence**, avec L = λ_max(2C + 2µAᵀA).
@@ -71,7 +71,7 @@ def projeter_orthant_positif(q: np.ndarray) -> np.ndarray:
     (``tests/test_projection.py``), et sa justification mathématique figure dans
     le docstring du module.
     """
-    raise NotImplementedError("M5 à partir de M4 — Étape 9.")
+    raise NotImplementedError("M5 à partir de M4, Étape 9.")
 
 
 def pas_maximal_theorique(A: np.ndarray, couts: np.ndarray, mu: float) -> float:
@@ -88,7 +88,7 @@ def pas_maximal_theorique(A: np.ndarray, couts: np.ndarray, mu: float) -> float:
     Returns:
         La borne 2/L, au-delà de laquelle la théorie ne garantit plus rien.
     """
-    raise NotImplementedError("M5 à partir de M4 et M2 — Étape 9.")
+    raise NotImplementedError("M5 à partir de M4 et M2, Étape 9.")
 
 
 def descente_projetee(
@@ -109,12 +109,12 @@ def descente_projetee(
         couts: vecteur des c_e, longueur |E|.
         mu: paramètre de pénalisation.
         eta: pas d'apprentissage. Si ``None``, prendre une fraction de la borne
-            théorique — mais alors le *dire* dans le rapport, et non laisser
+            théorique, mais alors le *dire* dans le rapport, et non laisser
             croire que le pas a été réglé à la main.
         q_initial: point de départ. Par défaut le vecteur nul, qui est
             admissible pour q ≥ 0.
         tolerance: seuil d'arrêt sur ‖q_{k+1} − q_k‖.
-        max_iterations: garde-fou contre une divergence — utile précisément
+        max_iterations: garde-fou contre une divergence, utile précisément
             dans l'Expérience 4, où l'on fait *exprès* de dépasser 2/L.
 
     Returns:
@@ -129,7 +129,7 @@ def descente_projetee(
     « Optimisation » évalue.
     """
     raise NotImplementedError(
-        "M5 à partir des dérivations validées et relues de M4 — Étape 9. "
+        "M5 à partir des dérivations validées et relues de M4, Étape 9. "
         "Livrable : algorithme validé sur un petit cas test dont la solution "
         "est vérifiable à la main, avant utilisation sur le réseau complet."
     )

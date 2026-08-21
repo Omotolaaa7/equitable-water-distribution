@@ -26,7 +26,7 @@ def comparer_sur_un_scenario(reseau, A: np.ndarray, demandes: np.ndarray, q_opti
     Returns:
         Un dictionnaire à plat, prêt à devenir une ligne de DataFrame.
     """
-    raise NotImplementedError("M6 — Étape 11.")
+    raise NotImplementedError("M6, Étape 11.")
 
 
 def comparer_sur_scenarios(reseau, A: np.ndarray, resultats) -> "object":
@@ -42,7 +42,7 @@ def comparer_sur_scenarios(reseau, A: np.ndarray, resultats) -> "object":
     Returns:
         Un ``pandas.DataFrame``, une ligne par scénario.
     """
-    raise NotImplementedError("M6 — Étape 11.")
+    raise NotImplementedError("M6, Étape 11.")
 
 
 def synthese(comparaison) -> "object":
@@ -54,7 +54,7 @@ def synthese(comparaison) -> "object":
     Returns:
         Un ``pandas.DataFrame`` prêt à exporter dans ``results/tables/``.
     """
-    raise NotImplementedError("M6 — Étape 11.")
+    raise NotImplementedError("M6, Étape 11.")
 
 
 def test_significativite(couts_reference: np.ndarray, couts_optimise: np.ndarray) -> dict:
@@ -66,10 +66,10 @@ def test_significativite(couts_reference: np.ndarray, couts_optimise: np.ndarray
     Choix à justifier dans le rapport : les deux stratégies sont évaluées **sur
     les mêmes scénarios**, donc les échantillons sont appariés. Un test apparié
     est plus puissant qu'un test à deux échantillons indépendants, et appliquer
-    ce dernier ici serait une erreur de méthode — pas seulement un choix
+    ce dernier ici serait une erreur de méthode, pas seulement un choix
     sous-optimal.
 
     Returns:
         Statistique de test, p-valeur, et taille d'effet.
     """
-    raise NotImplementedError("M6 — Étape 12, volet statistique de la validation.")
+    raise NotImplementedError("M6, Étape 12, volet statistique de la validation.")

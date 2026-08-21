@@ -1,4 +1,4 @@
-"""Expérience 6 — Identification des quartiers à risque.
+"""Expérience 6 : identification des quartiers à risque.
 
 Responsable : M3, avec M5 pour l'exécution.
 Dépend de : les estimateurs et intervalles de confiance de l'Étape 4.
@@ -19,7 +19,7 @@ l'information qu'un ingénieur réseau peut réellement utiliser.
 
 Point de méthode à ne pas manquer : le biais est introduit *volontairement* sur
 certains quartiers. Ce sont eux la vérité terrain de l'expérience, et le
-critère de réussite est que la méthode les retrouve — sans lever de fausse
+critère de réussite est que la méthode les retrouve, sans lever de fausse
 alerte sur les quartiers non biaisés. Le taux de fausses alertes attendu sur un
 IC à 95 % est d'environ 5 % : c'est le repère par rapport auquel toute
 fréquence mesurée doit être lue.
@@ -37,7 +37,7 @@ import _bootstrap  # noqa: F401
 
 
 def main() -> None:
-    raise NotImplementedError("M3 avec M5 — Expérience 6.")
+    raise NotImplementedError("M3 avec M5, Expérience 6.")
 
 
 if __name__ == "__main__":

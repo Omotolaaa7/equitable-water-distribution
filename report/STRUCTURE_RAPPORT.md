@@ -1,4 +1,4 @@
-# Rapport final — structure imposée et checklist de conformité
+# Rapport final : structure imposée et checklist de conformité
 
 Responsable : **M6**, avec les contributions de tous.
 Rubrique « Rédaction & rigueur » : 10 % de la note, mais ce document conditionne
@@ -17,7 +17,7 @@ démonstrations.
 |---|---|---|---|
 | 1 | Introduction | Contexte, problématique, motivation, brève revue des approches existantes | M6 |
 | 2 | Formulation du problème | Variables, paramètres, hypothèses, contraintes | M1 + M6 |
-| 3 | Développement mathématique | Les **cinq volets** ci-dessous, ordre libre | M1–M4 |
+| 3 | Développement mathématique | Les **cinq volets** ci-dessous, ordre libre | M1 à M4 |
 | 4 | Méthode numérique | Passage explicite mathématiques → algorithme, **en pseudo-code uniquement** | M4 + M5 |
 | 5 | Expériences numériques | Vérification empirique d'au moins **deux** résultats théoriques de la section 3 | M5 |
 | 6 | Analyse des résultats | Interprétation **mathématique**, pas seulement descriptive | M6 + M3 |
@@ -44,12 +44,12 @@ apparaître, et chacun est noté séparément.
 
 Indépendamment du plan retenu, le rapport doit contenir explicitement :
 
-- [ ] **(i)** Une proposition mathématique justifiée — ici : convexité de `J`
+- [ ] **(i)** Une proposition mathématique justifiée, ici la convexité de `J`
 - [ ] **(ii)** Une dérivation complète de `∇J(q) = 2Cq + 2µAᵀ(Aq − b)`
-- [ ] **(iii)** Un algorithme correctement justifié — descente de gradient projetée
-- [ ] **(iv)** Une validation numérique confrontant théorie et expérience — Expériences 4 et 5
-- [ ] **(v)** Une analyse de sensibilité d'au moins un hyperparamètre — Expérience 3 sur `µ`
-- [ ] **(vi)** Une comparaison à une stratégie de référence — Expérience 1, distribution proportionnelle
+- [ ] **(iii)** Un algorithme correctement justifié, la descente de gradient projetée
+- [ ] **(iv)** Une validation numérique confrontant théorie et expérience, Expériences 4 et 5
+- [ ] **(v)** Une analyse de sensibilité d'au moins un hyperparamètre, Expérience 3 sur `µ`
+- [ ] **(vi)** Une comparaison à une stratégie de référence, Expérience 1, distribution proportionnelle
 
 ---
 
@@ -58,14 +58,14 @@ Indépendamment du plan retenu, le rapport doit contenir explicitement :
 Tant que ces huit cases ne sont pas cochées, **aucune ligne de `src/optimization/`
 ne doit être écrite** (section 16 du plan).
 
-- [ ] 1. Graphe du réseau figé (nœuds, arêtes, capacités, orientations), validé par le groupe — *M1*
-- [ ] 2. Matrice `A` construite formellement, rang et conditionnement étudiés — *M2*
-- [ ] 3. Modèle probabiliste validé (loi, `µ_i`, `σ_i`, justification) — *M3*
-- [ ] 4. Convexité de `J(q)` démontrée **par écrit** — *M4*
-- [ ] 5. `∇J(q)` dérivé à la main, relu par **deux membres autres que son auteur** — *M4*
-- [ ] 6. Règle de mise à jour et projection écrites en pseudo-code — *M4*
-- [ ] 7. Conditions de convergence établies (`η < 2/L`, critère d'arrêt) — *M4 + M2*
-- [ ] 8. Stratégie de référence définie précisément — *M6*
+- [ ] 1. Graphe du réseau figé (nœuds, arêtes, capacités, orientations), validé par le groupe (*M1*)
+- [ ] 2. Matrice `A` construite formellement, rang et conditionnement étudiés (*M2*)
+- [ ] 3. Modèle probabiliste validé (loi, `µ_i`, `σ_i`, justification) (*M3*)
+- [ ] 4. Convexité de `J(q)` démontrée **par écrit** (*M4*)
+- [ ] 5. `∇J(q)` dérivé à la main, relu par **deux membres autres que son auteur** (*M4*)
+- [ ] 6. Règle de mise à jour et projection écrites en pseudo-code (*M4*)
+- [ ] 7. Conditions de convergence établies (`η < 2/L`, critère d'arrêt) (*M4 + M2*)
+- [ ] 8. Stratégie de référence définie précisément (*M6*)
 
 ---
 

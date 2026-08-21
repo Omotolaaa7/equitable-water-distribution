@@ -41,7 +41,7 @@ def resoudre_scenario(reseau, A: np.ndarray, demandes: np.ndarray, mu: float, **
     Enchaînement : ``construire_second_membre`` pour obtenir b, puis
     ``descente_projetee``, puis calcul des métriques.
     """
-    raise NotImplementedError("M5 — Étape 10, dépend d'un solveur fonctionnel.")
+    raise NotImplementedError("M5, Étape 10, dépend d'un solveur fonctionnel.")
 
 
 def resoudre_tous(
@@ -58,11 +58,11 @@ def resoudre_tous(
     Attention au coût de calcul : N scénarios × k itérations de descente. Sur
     N = 10 000, une descente lente devient une expérience qui ne tourne plus.
     Si le temps devient un obstacle, le réduire en resserrant la tolérance ou
-    en partant d'un q_initial pertinent — jamais en baissant N en silence, ce
+    en partant d'un q_initial pertinent, mais jamais en baissant N en silence, ce
     qui dégraderait la fiabilité statistique sans que le rapport le signale
     (erreur listée en section 14 du plan).
     """
-    raise NotImplementedError("M5 — Étape 10.")
+    raise NotImplementedError("M5, Étape 10.")
 
 
 def scenarios_de_stress(reseau, quantile: float = 0.95) -> np.ndarray:
@@ -76,4 +76,4 @@ def scenarios_de_stress(reseau, quantile: float = 0.95) -> np.ndarray:
     Args:
         quantile: niveau de sévérité, 0.95 pour une demande haute.
     """
-    raise NotImplementedError("M5 — Étape 10.")
+    raise NotImplementedError("M5, Étape 10.")

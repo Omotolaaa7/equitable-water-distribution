@@ -4,7 +4,7 @@ La boîte à outils du plan (section 10.3) retient pytest pour « donner une
 garantie concrète que chaque brique fonctionne avant de l'assembler dans le
 pipeline complet ». Ces tests ne sont pas un livrable noté en tant que tel :
 ils protègent la rubrique « Implémentation & validation » (15 %) contre les
-erreurs silencieuses — un facteur 2 oublié, un Aᵀ écrit A, un ddof par défaut.
+erreurs silencieuses : un facteur 2 oublié, un Aᵀ écrit A, un ddof par défaut.
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ def reseau_minimal():
 
     Cas proposé : un réservoir, deux quartiers, deux conduites parallèles vers
     le même quartier de coûts c_1 et c_2. À l'optimum, le débit se répartit
-    entre les deux conduites en proportion inverse des coûts — un résultat qui
+    entre les deux conduites en proportion inverse des coûts, un résultat qui
     se pose en trois lignes et qui prend en défaut une erreur de signe ou de
     facteur.
     """

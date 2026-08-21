@@ -1,11 +1,11 @@
-"""Garde-fous sur le graphe et la matrice d'incidence — périmètre M2."""
+"""Garde-fous sur le graphe et la matrice d'incidence, périmètre M2."""
 
 from __future__ import annotations
 
 import pytest
 
 
-@pytest.mark.skip(reason="Bloqué par l'Étape 3 — construction de A par M2.")
+@pytest.mark.skip(reason="Bloqué par l'Étape 3, construction de A par M2.")
 def test_colonnes_de_A_somment_a_zero():
     """Chaque colonne de A porte exactement un +1 et un −1.
 

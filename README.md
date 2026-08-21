@@ -1,6 +1,6 @@
 # Distribuer l'eau équitablement dans un quartier quand la demande est incertaine
 
-**Thème 3 · Groupe 1** — Académie des Mathématiques Appliquées (AMA)
+**Thème 3 · Groupe 1**, Académie des Mathématiques Appliquées (AMA)
 Superviseur : Ir. Charbel Mamlankou
 
 ---
@@ -8,8 +8,8 @@ Superviseur : Ir. Charbel Mamlankou
 ## Le problème
 
 Une société de distribution d'eau alimente plusieurs quartiers depuis quelques réservoirs,
-via un réseau de conduites à débit limité. La répartition actuelle est empirique —
-proportionnelle à la demande historique — et la demande de chaque quartier varie de façon
+via un réseau de conduites à débit limité. La répartition actuelle est empirique,
+proportionnelle à la demande historique, et la demande de chaque quartier varie de façon
 imprévisible d'un jour à l'autre.
 
 **Objectif.** Produire un outil qui calcule une répartition de l'eau plus équitable et moins
@@ -23,7 +23,7 @@ q* = argmin_q  Σ_{e∈E} c_e q_e²      sous      Aq = b ,   q ≥ 0
 ```
 
 La contrainte d'égalité est traitée **par pénalisation** (jamais par multiplicateurs de
-Lagrange — c'est explicitement interdit par la Contrainte méthodologique 2 du sujet) :
+Lagrange, ce que la Contrainte méthodologique 2 du sujet interdit explicitement) :
 
 ```
 J(q) = Σ_e c_e q_e² + µ ‖Aq − b‖²
@@ -97,7 +97,7 @@ Projet2/
 │     └─ compare_strategies.py
 ├─ experiments/                # les 6 expériences imposées (section 6 du plan)
 ├─ results/{figures,tables}/   # sorties régénérables, non versionnées
-├─ report/                     # rapport final — aucun code source dedans
+├─ report/                     # rapport final, aucun code source dedans
 ├─ tests/                      # garde-fous pytest
 └─ docs/                       # sujet AMA + plan de projet du groupe
 ```
@@ -156,6 +156,6 @@ d'import eux-mêmes.
 
 ## Documents de référence
 
-- [docs/sujets_ama.pdf](docs/sujets_ama.pdf) — l'énoncé officiel des quatre thèmes
-- [docs/plan_projet_theme3_groupe1.pdf](docs/plan_projet_theme3_groupe1.pdf) — le plan de projet du groupe
-- [CONTRIBUTING.md](CONTRIBUTING.md) — conventions de travail à 6 sur le dépôt
+- [docs/sujets_ama.pdf](docs/sujets_ama.pdf) : l'énoncé officiel des quatre thèmes
+- [docs/plan_projet_theme3_groupe1.pdf](docs/plan_projet_theme3_groupe1.pdf) : le plan de projet du groupe
+- [CONTRIBUTING.md](CONTRIBUTING.md) : conventions de travail à 6 sur le dépôt

@@ -1,4 +1,4 @@
-"""Expérience 4 — Vérification empirique de la borne de convergence.
+"""Expérience 4 : vérification empirique de la borne de convergence.
 
 Responsable : M5, interprétation avec M4.
 Dépend de : la borne théorique η < 2/L établie par M4 à partir du L de M2.
@@ -32,7 +32,7 @@ Deux précautions de mise en œuvre :
 L'erreur à ne pas commettre, listée en section 14 : présenter une courbe qui
 descend comme preuve de convergence. Ce qui est démontré ici, c'est le lien
 entre la constante de Lipschitz calculée à l'Étape 3 et le comportement
-observé de part et d'autre du seuil — pas le simple fait que ça descende.
+observé de part et d'autre du seuil, et non le simple fait que ça descende.
 """
 
 from __future__ import annotations
@@ -41,7 +41,7 @@ import _bootstrap  # noqa: F401
 
 
 def main() -> None:
-    raise NotImplementedError("M5 — Expérience 4.")
+    raise NotImplementedError("M5, Expérience 4.")
 
 
 if __name__ == "__main__":

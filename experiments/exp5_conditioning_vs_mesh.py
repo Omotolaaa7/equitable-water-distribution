@@ -1,4 +1,4 @@
-"""Expérience 5 — Effet du maillage du réseau sur le conditionnement.
+"""Expérience 5 : effet du maillage du réseau sur le conditionnement.
 
 Responsable : M5, interprétation avec M2.
 Dépend de : ``generer_variantes_de_maillage`` (M1/M2) et l'analyse de l'Étape 3.
@@ -27,8 +27,8 @@ différentes :
   nature et les κ ne sont plus comparables ;
 - µ, η et la tolérance doivent être identiques d'une variante à l'autre ;
 - si η est dérivé de 2/L, il change *mécaniquement* avec le conditionnement.
-  Deux protocoles se défendent — η fixe pour tous, ou η adapté à chaque
-  variante — mais ils ne mesurent pas la même chose, et le rapport doit dire
+  Deux protocoles se défendent (η fixe pour tous, ou η adapté à chaque
+  variante), mais ils ne mesurent pas la même chose, et le rapport doit dire
   lequel est retenu et pourquoi.
 
 Le résultat attendu est une relation croissante, pas une droite : ne pas
@@ -41,7 +41,7 @@ import _bootstrap  # noqa: F401
 
 
 def main() -> None:
-    raise NotImplementedError("M5 avec M2 — Expérience 5.")
+    raise NotImplementedError("M5 avec M2, Expérience 5.")
 
 
 if __name__ == "__main__":

@@ -33,7 +33,7 @@ def construire_graphe(reseau):
     Returns:
         Un ``networkx.DiGraph``.
     """
-    raise NotImplementedError("M2 — Étape 2.")
+    raise NotImplementedError("M2, Étape 2.")
 
 
 def construire_matrice_incidence(reseau) -> np.ndarray:
@@ -55,7 +55,7 @@ def construire_matrice_incidence(reseau) -> np.ndarray:
     Le signe de b n'est pas anodin : l'inverser change la solution sans lever
     la moindre erreur. M1 doit valider l'interprétation physique, M2 le codage.
 
-    Forme : ``(|V|, |E|)`` — une ligne par nœud, une colonne par conduite.
+    Forme : ``(|V|, |E|)``, une ligne par nœud, une colonne par conduite.
 
     Args:
         reseau: le ``Reseau`` livré par M1.
@@ -64,7 +64,7 @@ def construire_matrice_incidence(reseau) -> np.ndarray:
         A, de forme (|V|, |E|), dans l'ordre de nœuds donné par ``reseau.noeuds``.
     """
     raise NotImplementedError(
-        "M2 — Étape 3. Livrable : A codée et testée, plus l'interprétation "
+        "M2, Étape 3. Livrable : A codée et testée, plus l'interprétation "
         "physique de Aq = b rédigée et validée (checklist, section 13)."
     )
 
@@ -84,7 +84,7 @@ def construire_second_membre(reseau, demandes: np.ndarray) -> np.ndarray:
     Returns:
         b, de longueur |V|, aligné sur ``reseau.noeuds``.
     """
-    raise NotImplementedError("M2 — Étape 3, avec M3 pour le format des demandes.")
+    raise NotImplementedError("M2, Étape 3, avec M3 pour le format des demandes.")
 
 
 def vecteur_couts(reseau) -> np.ndarray:
@@ -95,4 +95,4 @@ def vecteur_couts(reseau) -> np.ndarray:
     convexité de J : elle est vérifiée par ``valider_reseau``, et doit être
     citée comme hypothèse dans la démonstration de M4.
     """
-    raise NotImplementedError("M2 — Étape 3.")
+    raise NotImplementedError("M2, Étape 3.")

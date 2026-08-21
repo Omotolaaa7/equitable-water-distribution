@@ -1,7 +1,7 @@
 """Fonction de coût pénalisée J(q) et son gradient ∇J(q).
 
 Responsable : M5 pour l'implémentation, à partir des dérivations de M4.
-Dépend de : les Étapes 6, 7 et 8 — formulation, pénalisation, gradient.
+Dépend de : les Étapes 6, 7 et 8 (formulation, pénalisation, gradient).
 Alimente : ``gradient_descent`` et toutes les expériences.
 
 ⚠ Ne rien coder ici avant que la dérivation de M4 soit écrite et relue par
@@ -17,14 +17,14 @@ Problème d'origine (Étape 6) :
 Convexité (à démontrer, Étape 6) : Σ c_e q_e² = qᵀCq avec C = diag(c_e). C est
 diagonale à coefficients strictement positifs, donc définie positive, donc la
 forme quadratique est strictement convexe. La stricte positivité des c_e n'est
-pas un détail d'hygiène — c'est l'hypothèse exacte dont dépend la conclusion.
+pas un détail d'hygiène : c'est l'hypothèse exacte dont dépend la conclusion.
 
 Pénalisation (Étape 7) : la contrainte d'égalité est reportée dans le coût,
 
     J(q) = qᵀCq + µ‖Aq − b‖²
 
 Le sujet interdit les multiplicateurs de Lagrange (Contrainte méthodologique 2).
-J reste convexe comme somme de deux formes quadratiques convexes — µ‖Aq − b‖²
+J reste convexe comme somme de deux formes quadratiques convexes, car µ‖Aq − b‖²
 est convexe pour tout µ ≥ 0 puisque AᵀA est semi-définie positive. Ce que le
 rapport doit ajouter : la solution pénalisée ne satisfait Aq = b qu'à la limite
 µ → ∞, et le résidu ‖Aq* − b‖ est donc une quantité à mesurer, pas à supposer
@@ -58,7 +58,7 @@ def cout(q: np.ndarray, couts: np.ndarray) -> float:
         q: vecteur des débits, longueur |E|.
         couts: vecteur des c_e, longueur |E|.
     """
-    raise NotImplementedError("M5 à partir de M4 — Étape 7.")
+    raise NotImplementedError("M5 à partir de M4, Étape 7.")
 
 
 def violation_contrainte(q: np.ndarray, A: np.ndarray, b: np.ndarray) -> float:
@@ -68,7 +68,7 @@ def violation_contrainte(q: np.ndarray, A: np.ndarray, b: np.ndarray) -> float:
     conservation des flux. C'est la métrique centrale de l'Expérience 3 :
     elle doit décroître quand µ augmente.
     """
-    raise NotImplementedError("M5 à partir de M4 — Étape 7.")
+    raise NotImplementedError("M5 à partir de M4, Étape 7.")
 
 
 def objectif(q: np.ndarray, A: np.ndarray, b: np.ndarray, couts: np.ndarray, mu: float) -> float:
@@ -84,7 +84,7 @@ def objectif(q: np.ndarray, A: np.ndarray, b: np.ndarray, couts: np.ndarray, mu:
     Returns:
         La valeur de J en q.
     """
-    raise NotImplementedError("M5 à partir de la dérivation validée de M4 — Étape 7.")
+    raise NotImplementedError("M5 à partir de la dérivation validée de M4, Étape 7.")
 
 
 def gradient(q: np.ndarray, A: np.ndarray, b: np.ndarray, couts: np.ndarray, mu: float) -> np.ndarray:
@@ -104,7 +104,7 @@ def gradient(q: np.ndarray, A: np.ndarray, b: np.ndarray, couts: np.ndarray, mu:
         Le gradient en q, longueur |E|.
     """
     raise NotImplementedError(
-        "M5 à partir de la dérivation validée et relue de M4 — Étape 8. "
+        "M5 à partir de la dérivation validée et relue de M4, Étape 8. "
         "Vérifier ensuite avec verifier_gradient."
     )
 
@@ -116,7 +116,7 @@ def hessienne(A: np.ndarray, couts: np.ndarray, mu: float) -> np.ndarray:
     fois et sert à la fois à établir la borne sur le pas (λ_max) et à discuter
     le conditionnement du problème pénalisé.
     """
-    raise NotImplementedError("M5 à partir de M4 — Étapes 8 et 9.")
+    raise NotImplementedError("M5 à partir de M4, Étapes 8 et 9.")
 
 
 def verifier_gradient(
@@ -126,7 +126,7 @@ def verifier_gradient(
 
     Garde-fou contre les erreurs de dérivation les plus coûteuses : facteur 2
     oublié, Aᵀ écrit A, signe de b inversé. Ces trois-là ne font pas planter le
-    code — elles produisent un q* faux, plausible, et invalident silencieusement
+    code : elles produisent un q* faux, plausible, et invalident silencieusement
     toutes les expériences.
 
     Pour chaque composante e :
@@ -138,7 +138,7 @@ def verifier_gradient(
     d'arrondi.
 
     Cette vérification ne remplace pas la dérivation manuscrite exigée par le
-    sujet — elle la contrôle. Un gradient qui passe ce test mais n'est pas
+    sujet, elle la contrôle. Un gradient qui passe ce test mais n'est pas
     dérivé dans le rapport reste une violation de la Contrainte
     méthodologique 1.
 
@@ -146,4 +146,4 @@ def verifier_gradient(
         L'écart relatif maximal entre gradient analytique et numérique. Un
         ordre de grandeur de 1e-6 ou moins indique une dérivation correcte.
     """
-    raise NotImplementedError("M5 — contrôle des Étapes 7 et 8, à écrire avant le solveur.")
+    raise NotImplementedError("M5, contrôle des Étapes 7 et 8, à écrire avant le solveur.")
