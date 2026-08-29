@@ -45,6 +45,22 @@
     "Q1 est volontairement le seul quartier desservi par une seule conduite (R1-Q1) : point de fragilite assume et documente, a tester explicitement dans les experiences numeriques.",
     "Couts unitaires c_e plus faibles sur les conduites de backbone (economies d'echelle) et plus eleves sur les conduites de boucle et d'inter-zones (infrastructure additionnelle, non utilisee en continu)."
   ],
+  "correlations_voisinage": [
+    { "quartiers": ["Q2", "Q3"], "rho": 0.3 },
+    { "quartiers": ["Q3", "Q4"], "rho": 0.3 },
+    { "quartiers": ["Q6", "Q7"], "rho": 0.3 },
+    { "quartiers": ["Q7", "Q8"], "rho": 0.3 },
+    { "quartiers": ["Q4", "Q5"], "rho": 0.3 },
+    { "quartiers": ["Q3", "Q6"], "rho": 0.3 },
+    { "quartiers": ["Q2", "Q4"], "rho": 0.3 },
+    { "quartiers": ["Q5", "Q6"], "rho": 0.3 },
+    { "quartiers": ["Q6", "Q8"], "rho": 0.3 }
+  ],
+  "hyperparametres": {
+    "marge_offre_pct": 20,
+    "sigma_pct_mu_min": 15,
+    "sigma_pct_mu_max": 20
+  },
   "verification_connexite": {
     "nombre_noeuds": 10,
     "nombre_conduites": 13,
