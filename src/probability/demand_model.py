@@ -1,24 +1,9 @@
-<<<<<<< HEAD
 """Modèle de demande D_i ~ N(µ_i, σ_i²), estimateurs et intervalles de confiance.
 
 Responsable : M3, en collaboration avec M6.
 Dépend de : la topologie de M1 (nombre de quartiers, ordres de grandeur).
 Alimente : M5 (paramètres nécessaires au Monte-Carlo).
 Étape 4 du pipeline.
-
-Le sujet impose la loi gaussienne, mais l'imposer n'est pas la justifier. La
-section 1.7 du plan est explicite : contrairement au Thème 1, le sujet ne
-réclame pas de démonstration par le théorème central limite, mais une
-justification reste attendue, et la négliger est listée en section 14 parmi les
-erreurs à éviter.
-
-Argument à développer dans le rapport : la demande d'un quartier est la somme
-d'un grand nombre de consommations individuelles à peu près indépendantes et de
-faible amplitude devant le total, ce qui place le TCL en position d'argument
-recevable. Argument à ne pas taire non plus : une gaussienne autorise des
-demandes négatives. Avec σ_i entre 12 % et 28 % de µ_i, P(D_i < 0) reste
-négligeable, mais le rapport doit le chiffrer plutôt que l'affirmer, et dire ce
-que le code fait des tirages négatifs s'il en survient.
 """
 
 from __future__ import annotations
@@ -157,7 +142,6 @@ def quartiers_atypiques(
         Fréquence de dépassement par quartier.
     """
     raise NotImplementedError("M3, Expérience 6.")
-=======
 """
 Projet : Distribution d'eau équitable sous incertitude (Thème 3)
 
@@ -423,4 +407,3 @@ if __name__ == "__main__":
     print("\n" + "=" * 88)
     print(">>> MODULE DEMAND_MODEL ENTIÈREMENT VALIDÉ ET FONCTIONNEL À 100% <<<")
     print("=" * 88)
->>>>>>> 9ede8c2 (Probabilité: libvrable membre 3)
