@@ -38,13 +38,14 @@ répartition, donc le x, donc `argmin`.
 
 ## 1. Un vecteur, c'est une liste étiquetée
 
-Notre réseau a 15 conduites. Les débits sur ces 15 conduites forment une liste de 15 nombres.
+Notre réseau a 13 conduites. Les débits sur ces 13 conduites forment une liste de 13 nombres.
 On note cette liste `q`, et on l'appelle un vecteur (liste ordonnée de nombres).
 
 ```
-q = [ 180 ,  95 , 200 ,  60 , 220 , ... ]
-      ↑      ↑     ↑
-      R1→Q1  R1→Q2 R1→Q3
+q = [  25 , 120 ,  55 ,  20 , ... ]
+       ↑     ↑     ↑     ↑
+      e1    e2    e3    e4
+    R1→Q1 R1→Q2 Q2→Q3 Q3→Q4
 ```
 
 Ce qui compte, c'est que l'ordre est fixé une fois pour toutes. La case numéro 3 correspond
@@ -57,8 +58,8 @@ faux qui ressemblent à des résultats justes.
 
 ## 2. Une matrice, c'est un tableau de nombres
 
-Un tableau à lignes et colonnes. Notre matrice `A` a 12 lignes (2 réservoirs plus 10 quartiers)
-et 15 colonnes (les 15 conduites). On dit qu'elle est de taille 12 × 15.
+Un tableau à lignes et colonnes. Notre matrice `A` a 10 lignes (2 réservoirs plus 8 quartiers)
+et 13 colonnes (les 13 conduites). On dit qu'elle est de taille 10 × 13.
 
 ## 3. Le produit matrice fois vecteur, la seule opération à vraiment maîtriser
 
@@ -84,18 +85,18 @@ Aq = [ 6 ]
 
 Le résultat a autant de cases qu'il y a de lignes dans A. Ici 2 lignes, donc 2 cases.
 
-Retenez la règle de taille : une matrice 12 × 15 multipliée par un vecteur de 15 cases donne
-un vecteur de 12 cases. Le 15 « s'annule » entre les deux. Si les nombres ne se correspondent
+Retenez la règle de taille : une matrice 10 × 13 multipliée par un vecteur de 13 cases donne
+un vecteur de 10 cases. Le 13 « s'annule » entre les deux. Si les nombres ne se correspondent
 pas, l'opération n'existe pas, et NumPy lèvera une erreur de forme.
 
 ## 4. La transposée, `Aᵀ`
 
 On retourne le tableau : la ligne 1 devient la colonne 1, la ligne 2 devient la colonne 2.
-Une matrice 12 × 15 devient une matrice 15 × 12.
+Une matrice 10 × 13 devient une matrice 13 × 10.
 
-Pourquoi ça apparaît dans le gradient. Parce que `A` transforme des débits (15 cases) en bilans
-par point (12 cases), et que pour revenir de l'espace des points vers l'espace des conduites,
-il faut l'opération inverse au sens des tailles. `Aᵀ` transforme 12 cases en 15 cases.
+Pourquoi ça apparaît dans le gradient. Parce que `A` transforme des débits (13 cases) en bilans
+par point (10 cases), et que pour revenir de l'espace des points vers l'espace des conduites,
+il faut l'opération inverse au sens des tailles. `Aᵀ` transforme 10 cases en 13 cases.
 
 Une façon de le retenir : `A` va des conduites vers les nœuds, `Aᵀ` va des nœuds vers les
 conduites.
@@ -107,7 +108,8 @@ conduites.
 Un graphe, c'est un ensemble de points et de traits entre ces points. On note `G = (V, E)`.
 `V` est l'ensemble des sommets ou nœuds (les points), `E` l'ensemble des arêtes (les traits).
 
-Ici, les nœuds sont les 2 réservoirs et les 10 quartiers. Les arêtes sont les 15 conduites.
+Ici, les nœuds sont les 2 réservoirs R1 et R2, et les 8 quartiers Q1 à Q8. Les arêtes sont
+les 13 conduites, numérotées e1 à e13.
 
 Le graphe est orienté (chaque trait a un sens). L'orientation dit dans quel sens on a décidé
 que l'eau circule. C'est une convention posée par M1, et elle doit être défendue dans le
@@ -131,7 +133,7 @@ quelque chose que la physique du problème ne demande pas.
 Trois notions différentes, à ne pas mélanger dans le rapport.
 
 Le **degré** d'un nœud, c'est le nombre de traits qui y arrivent. Un quartier de degré 1 n'a
-qu'une seule conduite. Si elle casse, il n'a plus rien. Dans notre réseau, Q10 est dans ce cas,
+qu'une seule conduite. Si elle casse, il n'a plus rien. Dans notre réseau, Q1 est dans ce cas,
 volontairement.
 
 Une **arête pont** (aussi appelée isthme), c'est une conduite dont la disparition couperait le
@@ -140,19 +142,26 @@ graphe en deux morceaux. Sa casse peut priver plusieurs quartiers d'un coup, pas
 Un **point d'articulation**, c'est un nœud dont la disparition couperait le graphe. Un carrefour
 par lequel tout passe.
 
-Q10 cumule les trois autour de la même conduite Q9 → Q10, ce qui en fait le cas de test naturel
-du module `graph_analysis.py`.
+Les trois notions ne désignent pas les mêmes nœuds, et c'est justement ce qui les rend utiles.
+Lancé sur notre réseau, `graph_analysis.py` trouve Q1 comme seul nœud de degré 1, deux arêtes
+pont (R1 vers Q1 et R1 vers Q2), et trois points d'articulation (R1, Q2 et Q6).
+
+Q1 n'est donc pas un point d'articulation : le retirer ne coupe rien, puisque rien ne transite
+par lui. Q2 en est un, parce que toute la branche Q3 puis Q4 passe par lui. Savoir expliquer
+cette différence en soutenance vaut mieux que réciter les trois définitions.
 
 ### 5.4 Les cycles, et pourquoi ils sont le centre du projet
 
 Un cycle, c'est une boucle : on part d'un point, on suit des traits, on revient au point de
 départ sans repasser deux fois par le même trait.
 
-Regardez notre réseau. R1 → Q1 → Q5, et R2 → Q5. Il y a deux façons d'amener de l'eau à Q5.
+Regardez notre réseau. Pour aller de Q2 à Q4, il y a deux chemins : le long, Q2 vers Q3 puis
+Q3 vers Q4 (les conduites e3 et e4), et le court, Q2 vers Q4 directement (la conduite e11).
 C'est une boucle au sens du graphe.
 
 Cette boucle est exactement ce qui crée le choix dont parle l'étape 4 du document 01. On peut
-faire passer un peu plus par un chemin et un peu moins par l'autre, sans que Q5 s'en aperçoive.
+faire passer un peu plus par un chemin et un peu moins par l'autre, sans que Q4 s'en aperçoive.
+Notre réseau contient 4 boucles de ce type.
 
 Retenez cette phrase pour la soutenance : **sans cycle, pas de choix ; sans choix, pas
 d'optimisation ; sans optimisation, pas de projet.**
@@ -198,7 +207,8 @@ Ligne Q2 :       +q2 + q3    =  ce qui entre en Q2
 Chaque ligne dit la même chose : **entrant moins sortant**. Et le vecteur `b` dit à quoi ce
 bilan doit être égal.
 
-Pour un quartier, le bilan doit valoir sa consommation. Si Q1 consomme 120, alors `b_Q1 = +120`.
+Pour un quartier, le bilan doit valoir sa consommation. Q1 consomme 25 en moyenne, donc
+`b_Q1 = +25`.
 
 Pour un réservoir, le bilan doit valoir ce qu'il injecte, compté à l'envers puisqu'il ne fait
 que sortir de l'eau. Si R fournit 500, alors `b_R = −500`.
@@ -235,8 +245,8 @@ rang(A) = n − k
 
 où `n` est le nombre de nœuds et `k` le nombre de morceaux séparés du graphe.
 
-Notre réseau est connexe, donc `k = 1`, donc `rang(A) = 12 − 1 = 11`. La matrice a 12 lignes
-mais seulement 11 apportent de l'information.
+Notre réseau est connexe, donc `k = 1`, donc `rang(A) = 10 − 1 = 9`. La matrice a 10 lignes
+mais seulement 9 apportent de l'information.
 
 ### 7.2 Le noyau
 
@@ -249,7 +259,7 @@ cycles. Faire tourner de l'eau en rond dans une boucle ne change ce que reçoit 
 La dimension du noyau vaut :
 
 ```
-dim(noyau) = nombre de conduites − rang(A) = 15 − 11 = 4
+dim(noyau) = nombre de conduites − rang(A) = 13 − 9 = 4
 ```
 
 Ce nombre s'appelle le nombre cyclomatique du graphe. Il compte les boucles indépendantes.

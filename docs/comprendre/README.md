@@ -8,6 +8,20 @@ Utile au groupe entier, pas seulement au Membre 5.
 
 ---
 
+## État des chiffres, au 30 août 2026
+
+Les chiffres de ce dossier ont été repris après que le Membre 1 a figé la topologie définitive.
+Le réseau compte désormais 2 réservoirs, 8 quartiers et 13 conduites, contre 12 nœuds et 15
+conduites dans le gabarit de départ. Le rang de `A` vaut 9, le noyau reste de dimension 4, et
+le quartier fragile est Q1 et non plus Q10.
+
+Toutes les valeurs citées ici ont été recalculées en exécutant le code fusionné sur
+`data/network_config.json`. Si M1 modifie à nouveau la topologie, il faut refaire ce passage.
+
+Deux points d'intégration restent ouverts et sont signalés dans les documents concernés : les
+corrélations déclarées par M1 diffèrent de celles codées par M3, et les huit fonctions de
+`demand_model.py` que les expériences appellent sont toujours vides.
+
 ## Dans quel ordre lire
 
 | Ordre | Document | Durée | Quand |

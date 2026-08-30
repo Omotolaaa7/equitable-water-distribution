@@ -7,8 +7,8 @@
 
 ## 1. L'histoire
 
-Une société de distribution d'eau alimente une dizaine de quartiers depuis deux ou trois
-réservoirs (grands réservoirs de stockage). Entre les réservoirs et les quartiers, il y a des
+Une société de distribution d'eau alimente huit quartiers, Q1 à Q8, depuis deux réservoirs
+R1 et R2 (grands réservoirs de stockage). Entre les réservoirs et les quartiers, il y a des
 conduites (tuyaux), et chaque conduite a un débit maximal et un coût.
 
 Aujourd'hui, la société répartit l'eau « à l'ancienne » : chaque quartier reçoit une part
@@ -54,7 +54,8 @@ Le sujet insiste sur ce point : le graphe doit servir d'objet de calcul à part 
 lui que tout le reste va sortir.
 
 On vérifie au passage qu'aucun quartier n'est isolé, et on repère les fragilités. Dans notre
-réseau, Q10 n'est relié que par une seule conduite. Si elle casse, Q10 n'a plus d'eau du tout.
+réseau, Q1 n'est relié que par une seule conduite, R1 vers Q1. Si elle casse, Q1 n'a plus
+d'eau du tout.
 
 ### Étape 2. On transforme le dessin en tableau de nombres
 
@@ -229,7 +230,8 @@ solveur. Rien n'empêche la solution de dépasser une capacité. Il faut le vér
 le signaler.
 
 La loi normale autorise mathématiquement des demandes négatives. Avec les écarts-types retenus,
-entre 12 % et 28 % de la moyenne, la probabilité est négligeable, mais le rapport doit la
+entre 15 % et 20 % de la moyenne, il faudrait descendre à cinq écarts-types sous la moyenne
+pour atteindre zéro. La probabilité vaut 2,9 pour dix millions, mais le rapport doit la
 chiffrer plutôt que de balayer la question.
 
 Le réseau est synthétique (inventé, pas mesuré sur le terrain). Le sujet l'autorise

@@ -37,7 +37,7 @@ Tout le gradient du projet se déduit de ces deux lignes, plus la règle de comp
 
 ### 1.3 La dérivée partielle
 
-Notre fonction `J` ne dépend pas d'une seule variable mais de 15, un débit par conduite.
+Notre fonction `J` ne dépend pas d'une seule variable mais de 13, un débit par conduite.
 
 La dérivée partielle par rapport à `q_3`, notée `∂J/∂q_3`, se calcule en gelant les 14 autres
 variables et en dérivant comme si `q_3` était la seule.
@@ -47,11 +47,11 @@ est celle d'une dérivée ordinaire.
 
 ### 1.4 Le gradient
 
-Le gradient, noté `∇J` (nabla J), c'est simplement la liste des 15 dérivées partielles, rangées
+Le gradient, noté `∇J` (nabla J), c'est simplement la liste des 13 dérivées partielles, rangées
 dans l'ordre.
 
 ```
-∇J(q) = [ ∂J/∂q_1 , ∂J/∂q_2 , ... , ∂J/∂q_15 ]
+∇J(q) = [ ∂J/∂q_1 , ∂J/∂q_2 , ... , ∂J/∂q_13 ]
 ```
 
 Sa lecture géométrique : il pointe dans la direction où `J` augmente le plus vite. Donc `−∇J`
@@ -294,7 +294,7 @@ En rassemblant, pour toute conduite `f` :
 ∂J/∂q_f = 2 c_f q_f + 2 µ ( Aᵀ(Aq − b) )_f
 ```
 
-Et en empilant les 15 composantes dans un vecteur :
+Et en empilant les 13 composantes dans un vecteur :
 
 ```
 ∇J(q) = 2 C q + 2 µ Aᵀ (Aq − b)        avec C = diag(c_e)
@@ -372,6 +372,18 @@ convexe à gradient lipschitzien donne la condition :
 ```
 
 En pratique, on prend souvent `η = 1/L`, qui est dans la zone stable et loin du seuil.
+
+Sur notre réseau, le calcul est déjà fait et les chiffres sont parlants.
+
+| `µ` | `L` | pas maximal `2/L` |
+|---|---|---|
+| 1 | 14,95 | 0,134 |
+| 10 | 127,4 | 0,0157 |
+| 100 | 1 252 | 0,00160 |
+| 1 000 | 12 501 | 0,000160 |
+
+Multiplier `µ` par 1 000 divise le pas autorisé par 836. C'est le ralentissement dont parle
+la section 4.2, mesuré sur le vrai réseau.
 
 Pour calculer `L`, utiliser `numpy.linalg.eigvalsh(H).max()` et non `eigvals`, parce que `H`
 est symétrique.

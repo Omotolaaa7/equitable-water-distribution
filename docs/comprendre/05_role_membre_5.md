@@ -92,7 +92,7 @@ avec les intentions écrites.
 
 | Ce que je veux coder | Bloqué par | Ce que j'attends précisément |
 |---|---|---|
-| `monte_carlo.generer_scenarios` | M3 | Les vecteurs `µ` et `σ`, et la matrice de covariance figée |
+| `monte_carlo.generer_scenarios` | plus par M3 | Le modèle est livré, mais sous forme de classe. Voir la décision à prendre ci-dessous |
 | `objective.objectif` | M4 | La formule de `J(q)` écrite et validée par le groupe |
 | `objective.gradient` | M4 | La dérivation de `∇J` relue par deux membres |
 | `gradient_descent.pas_maximal_theorique` | M4 et M2 | La borne `2/L` et la façon de calculer `L` |
@@ -105,6 +105,34 @@ aucune ligne de code de `src/optimization/`.
 Cette règle vient de la contrainte méthodologique 1 du sujet, elle est notée, et une pull
 request qui implémente une formule doit pointer vers la section du rapport où elle est
 démontrée.
+
+### La décision à prendre sur le modèle de demande
+
+Le Membre 3 a livré son travail, mais pas là où les expériences vont le chercher. Il a écrit
+une classe `DemandModel` à la fin de `demand_model.py`, et les huit fonctions du squelette,
+celles que `monte_carlo.py` et les six expériences appellent, lèvent toujours
+`NotImplementedError`.
+
+Deux façons de recoller, et le choix vous revient puisque c'est vous qui codez la suite.
+
+**Brancher les fonctions sur la classe.** Chaque fonction du squelette devient une ou deux
+lignes qui instancient `DemandModel` et appellent la méthode correspondante. Environ 30 lignes
+en tout, rien d'autre ne bouge, les six expériences fonctionnent sans modification. C'est ce
+que je ferais.
+
+**Réécrire `monte_carlo.py` autour de la classe.** Plus propre sur le papier, mais il faut
+alors reprendre les six scripts d'expérience, et le travail déjà fait par le Membre 3 dans
+`exp6` devient un cas particulier à part.
+
+Dans les deux cas, un problème reste à régler avec le Membre 1. La classe code en dur les
+moyennes, les écarts-types et les corrélations, sans jamais lire `data/network_config.json`.
+Les moyennes et les écarts-types concordent, les corrélations non : M1 déclare 0,3 sur 9 paires
+précises, la classe utilise 0,40 entre voisins directs et 0,15 à deux conduites. Tant que ce
+n'est pas tranché, le rapport et le code décrivent deux modèles différents.
+
+Un troisième détail à corriger en passant : `experiments/exp6_at_risk_districts.py` ne
+s'exécute pas en ligne de commande. Le `main()` du squelette est resté en tête de fichier et
+lève son erreur avant que le code du Membre 3, collé en dessous, ne soit atteint.
 
 ## 5. L'ordre de travail recommandé
 
@@ -163,7 +191,7 @@ En remplaçant `q₂` par `D − q₁` et en dérivant, on trouve que l'optimum 
 Avec `c₁ = 1`, `c₂ = 3` et `D = 100`, on attend `q₁ = 75` et `q₂ = 25`.
 
 Ce cas prend en défaut une erreur de signe, un facteur 2 oublié et une transposée manquante, et
-il tient en cinq lignes. Le construire avant de lancer quoi que ce soit sur le réseau à 15
+il tient en cinq lignes. Le construire avant de lancer quoi que ce soit sur le réseau à 13
 conduites fait gagner des heures.
 
 ## 7. Les pièges d'implémentation qui coûtent cher
@@ -176,7 +204,7 @@ complexes avec des parties imaginaires numériques, et la comparaison au seuil `
 bancale.
 
 **L'ordre de calcul du gradient.** Écrire `A.T @ (A @ q - b)` et non `(A.T @ A) @ q - A.T @ b`.
-La première forme fait deux produits matrice-vecteur. La seconde construit une matrice 15 × 15
+La première forme fait deux produits matrice-vecteur. La seconde construit une matrice 13 × 13
 à chaque appel, des milliers de fois dans la boucle.
 
 **La graine aléatoire.** Passer un générateur explicite, `np.random.default_rng(42)`, jamais

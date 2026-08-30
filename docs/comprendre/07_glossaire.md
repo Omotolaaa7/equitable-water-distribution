@@ -9,16 +9,16 @@
 | Symbole | Nom | Ce que c'est ici |
 |---|---|---|
 | `G = (V, E)` | graphe | Le réseau : `V` les points, `E` les conduites |
-| `V` | sommets, nœuds | Les 2 réservoirs et les 10 quartiers, soit 12 en tout |
-| `E` | arêtes | Les 15 conduites |
-| `n` | | Le nombre de nœuds, 12 |
+| `V` | sommets, nœuds | Les 2 réservoirs et les 8 quartiers, soit 10 en tout |
+| `E` | arêtes | Les 13 conduites, e1 à e13 |
+| `n` | | Le nombre de nœuds, 10 |
 | `k` | | Le nombre de morceaux séparés du graphe, 1 puisque connexe |
-| `A` | matrice d'incidence | Le réseau écrit en tableau de nombres, 12 lignes et 15 colonnes |
-| `Aᵀ` | A transposée | Le tableau retourné, 15 lignes et 12 colonnes |
-| `q` | | Les débits sur chaque conduite, 15 nombres. C'est l'inconnue |
+| `A` | matrice d'incidence | Le réseau écrit en tableau de nombres, 10 lignes et 13 colonnes |
+| `Aᵀ` | A transposée | Le tableau retourné, 13 lignes et 10 colonnes |
+| `q` | | Les débits sur chaque conduite, 13 nombres. C'est l'inconnue |
 | `q*` | q étoile | La répartition optimale, celle qu'on cherche |
 | `q_e` | | Le débit sur la conduite `e` |
-| `b` | | Ce que chaque nœud apporte ou consomme, 12 nombres |
+| `b` | | Ce que chaque nœud apporte ou consomme, 10 nombres |
 | `c_e` | | Le coût unitaire de la conduite `e`, strictement positif |
 | `C` | | `diag(c_e)`, les coûts sur la diagonale, zéros ailleurs |
 | `D_i` | | La demande du quartier `i`, aléatoire |
@@ -29,7 +29,7 @@
 | `ρ` | rho | La corrélation entre deux quartiers, entre −1 et +1 |
 | `µ` | mu | Le réglage de la pénalisation. Homonyme de la moyenne, attention |
 | `J(q)` | | La fonction de coût pénalisée, celle qu'on minimise |
-| `∇J` | nabla J | Le gradient, la liste des 15 dérivées partielles |
+| `∇J` | nabla J | Le gradient, la liste des 13 dérivées partielles |
 | `∂J/∂q_e` | d rond | La dérivée partielle par rapport à un seul débit |
 | `H` | hessienne | `2C + 2µAᵀA`, la matrice des dérivées secondes |
 | `η` | êta | Le pas d'apprentissage de la descente |
@@ -137,7 +137,7 @@ trois.
 pas calculer directement.
 
 **Nombre cyclomatique** : le nombre de boucles indépendantes du graphe. Vaut `|E| − n + k`,
-soit 4 ici.
+soit `13 − 10 + 1 = 4` ici.
 
 **Norme** : la longueur d'une liste de nombres. `‖Aq − b‖` mesure de combien on rate la
 conservation.
@@ -194,21 +194,28 @@ connue.
 
 | Quantité | Valeur |
 |---|---|
-| Réservoirs | 2 |
-| Quartiers | 10 |
-| Nœuds au total | 12 |
-| Conduites | 15 |
-| Rang de A | 11 |
+| Réservoirs | 2, R1 et R2 |
+| Quartiers | 8, Q1 à Q8 |
+| Nœuds au total | 10 |
+| Conduites | 13, e1 à e13 |
+| Rang de A | 9 |
 | Dimension du noyau, ou nombre de boucles | 4 |
-| Offre totale | 1060 m³/h |
-| Demande moyenne totale | 1060 m³/h |
-| Coefficient de variation des demandes | de 12 % à 28 % |
-| Corrélations déclarées | 0,40 puis 0,35 puis 0,30 |
+| Conditionnement effectif de A | 4,724 |
+| Offre totale | 360 m³/h, soit 180 par réservoir |
+| Demande moyenne totale | 300 m³/h |
+| Marge d'offre voulue par M1 | 20 % |
+| Coûts unitaires `c_e` | de 0,9 à 1,6 |
+| Coefficient de variation des demandes | de 16,7 % à 20 % |
+| Corrélations déclarées par M1 | 0,3 sur 9 paires de quartiers |
+| Corrélations codées par M3 | 0,40 entre voisins, 0,15 à deux conduites |
 | Tirages Monte-Carlo de référence | 1000 |
 | Échelles vérifiées | 100, 1000, 10 000 |
-| Graine aléatoire | 42 |
+| Graine aléatoire | 42, fixée dans le code de M3 |
 | Valeurs de µ testées | 1, 10, 100, 1000 |
-| Quartier fragile | Q10, degré 1 |
+| Pas maximal `2/L` selon µ | 0,134 puis 0,0157 puis 0,00160 puis 0,000160 |
+| Quartier fragile | Q1, seul nœud de degré 1 |
+| Arêtes pont | R1 vers Q1, et R1 vers Q2 |
+| Points d'articulation | R1, Q2 et Q6 |
 | Expériences imposées | 6 |
 | Sections obligatoires du rapport | 9 |
 | Volets du développement mathématique | 5 |

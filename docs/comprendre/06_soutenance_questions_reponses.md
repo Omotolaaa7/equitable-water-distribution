@@ -12,7 +12,7 @@ sont pas la même chose raccourcie, elles s'arrêtent à des profondeurs différ
 
 ### En 30 secondes
 
-> Une société d'eau alimente dix quartiers depuis deux réservoirs. Elle répartit l'eau
+> Une société d'eau alimente huit quartiers depuis deux réservoirs. Elle répartit l'eau
 > proportionnellement à la consommation habituelle, sans jamais avoir vérifié si c'était le
 > meilleur choix. Nous avons construit un outil qui calcule la répartition la moins chère
 > compatible avec la physique du réseau, et qui la teste sur mille journées simulées pour voir
@@ -72,16 +72,16 @@ structure discrète et l'optimisation, ce qui est justement ce que la grille che
 
 **« Que vaut le rang de votre matrice, et pourquoi ? »**
 
-> Onze. La règle est `rang(A) = n − k`, avec `n` le nombre de nœuds et `k` le nombre de
-> composantes connexes. Nous avons douze nœuds et un réseau connexe, donc onze. La raison est
+> Neuf. La règle est `rang(A) = n − k`, avec `n` le nombre de nœuds et `k` le nombre de
+> composantes connexes. Nous avons dix nœuds et un réseau connexe, donc neuf. La raison est
 > physique : chaque colonne contient un plus un et un moins un, donc les lignes somment à zéro,
 > donc la dernière est déductible des autres.
 
 **« Que représente le noyau de A ? »**
 
 > Les circulations le long des boucles. Faire tourner de l'eau en rond dans un cycle ne change
-> le bilan d'aucun nœud. Sa dimension vaut le nombre de conduites moins le rang, soit quinze
-> moins onze égale quatre. C'est le nombre de boucles indépendantes du réseau.
+> le bilan d'aucun nœud. Sa dimension vaut le nombre de conduites moins le rang, soit treize
+> moins neuf égale quatre. C'est le nombre de boucles indépendantes du réseau.
 
 **« Quel est le conditionnement de votre matrice A ? »**
 
@@ -96,6 +96,9 @@ C'est la question piège de la partie algèbre. La mauvaise réponse est de donn
 > connectivité algébrique du graphe. Pour parler de la vitesse de la descente de gradient, le
 > conditionnement de la hessienne `2C + 2µAᵀA`, qui est toujours inversible dès que les coûts
 > sont strictement positifs.
+>
+> Sur notre réseau, la première quantité vaut 4,724. Le réseau est donc bien conditionné, ce
+> qui était attendu avec quatre boucles pour treize conduites.
 
 **« Expliquez-moi le conditionnement comme si je n'y connaissais rien. »**
 
@@ -122,9 +125,9 @@ C'est la question piège de la partie algèbre. La mauvaise réponse est de donn
 
 **« Votre loi normale autorise des demandes négatives. »**
 
-> Oui, mathématiquement. Avec nos écarts-types, entre douze et vingt-huit pour cent de la
-> moyenne, il faudrait descendre à plus de trois écarts-types sous la moyenne, ce qui arrive
-> moins d'une fois sur mille. Nous le chiffrons dans le rapport. Le Thème 4 du même énoncé
+> Oui, mathématiquement. Avec nos écarts-types, entre quinze et vingt pour cent de la moyenne,
+> il faudrait descendre à cinq écarts-types sous la moyenne, ce qui arrive trois fois sur dix
+> millions. Nous le chiffrons dans le rapport. Le Thème 4 du même énoncé
 > impose d'ailleurs une loi tronquée ou log-normale pour cette raison précise.
 
 **« Pourquoi divisez-vous par n moins un ? »**
@@ -350,8 +353,9 @@ que l'expliquer montre qu'on l'a franchie.
 
 - Savoir écrire la matrice d'incidence d'un réseau à trois nœuds au tableau.
 - Savoir dériver `∇J` de zéro, sans notes, en moins de cinq minutes.
-- Connaître par cœur : rang égale onze, noyau de dimension quatre, quinze conduites, douze
-  nœuds, dix quartiers, deux réservoirs, mille tirages, graine quarante-deux.
+- Connaître par cœur : rang égale neuf, noyau de dimension quatre, treize conduites, dix
+  nœuds, huit quartiers, deux réservoirs, conditionnement 4,724, offre 360 pour une demande
+  moyenne de 300, mille tirages, graine quarante-deux.
 - Savoir expliquer le conditionnement avec la vallée, sans écrire de formule.
 - Savoir dire pourquoi le critère d'arrêt ne porte pas sur le gradient.
 - Avoir sous la main les chiffres réels des six expériences, pas des ordres de grandeur.

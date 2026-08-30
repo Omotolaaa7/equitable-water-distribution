@@ -21,8 +21,8 @@ Le sujet impose la bonne.
 Une variable aléatoire, c'est une quantité dont la valeur change à chaque observation, et dont
 on connaît la façon dont elle se répartit sans connaître la valeur précise du jour.
 
-La demande du quartier Q1 en est une. Elle tourne autour de 120 m³/h, mais un mardi de mars
-elle vaudra 108, et un samedi de canicule 151.
+La demande du quartier Q1 en est une. Elle tourne autour de 25 m³/h, mais un mardi de mars
+elle vaudra 22, et un samedi de canicule 33.
 
 On la note `D_i` pour le quartier numéro `i`.
 
@@ -51,9 +51,9 @@ Pour une loi normale, quelle qu'elle soit :
 95 % tombent entre `µ − 2σ` et `µ + 2σ`.
 99,7 % tombent entre `µ − 3σ` et `µ + 3σ`.
 
-Appliquons à Q1, qui a `µ = 120` et `σ = 18` dans notre configuration. Deux jours sur trois,
-sa demande est entre 102 et 138. Dix-neuf jours sur vingt, elle est entre 84 et 156. Sortir de
-l'intervalle 66 à 174 arrive trois fois sur mille.
+Appliquons à Q1, qui a `µ = 25` et `σ = 5` dans notre configuration. Deux jours sur trois, sa
+demande est entre 20 et 30. Dix-neuf jours sur vingt, elle est entre 15 et 35. Sortir de
+l'intervalle 10 à 40 arrive trois fois sur mille.
 
 Ces chiffres rendent le modèle concret, et un jury apprécie qu'on sache les sortir.
 
@@ -78,10 +78,15 @@ limite honnête à mentionner.
 Une loi normale s'étend de moins l'infini à plus l'infini. Elle autorise donc mathématiquement
 une demande négative, ce qui n'a aucun sens physique.
 
-Avec nos écarts-types, entre 12 % et 28 % de la moyenne, il faudrait descendre à plus de trois
-écarts-types sous la moyenne pour atteindre zéro. La probabilité est négligeable, mais le
-rapport doit la chiffrer plutôt que de l'affirmer, et dire ce que le code fait si un tirage
-négatif survient malgré tout.
+Le Membre 1 a fixé les écarts-types entre 15 % et 20 % de la moyenne, et les valeurs retenues
+vont de 16,7 % à 20 %. Sur Q1, le quartier le plus dispersé en proportion, zéro se trouve à
+cinq écarts-types sous la moyenne. La probabilité d'un tirage négatif vaut 2,9 pour dix
+millions.
+
+Le rapport doit chiffrer cette probabilité plutôt que de l'affirmer, et dire ce que le code
+fait si un tirage négatif survient malgré tout. Sur ce point, le code du Membre 3 écrase les
+valeurs négatives à zéro avec `np.clip`. Ce choix se défend, mais il tire très légèrement la
+moyenne vers le haut et doit figurer dans le rapport.
 
 Le Thème 4 du même énoncé impose d'ailleurs une loi tronquée ou log-normale pour cette raison
 précise. Savoir que le voisin a ce problème et comment il le règle donne du relief à la
@@ -100,8 +105,15 @@ La corrélation, notée `ρ` (rho), mesure ça. Elle vaut entre `−1` et `+1`.
 `ρ = 0,4` : quand l'un monte, l'autre a tendance à monter aussi.
 `ρ = −1` : quand l'un monte, l'autre descend systématiquement.
 
-Notre configuration déclare `ρ = 0,40` entre Q1, Q2 et Q3, `ρ = 0,35` entre Q5, Q6 et Q7, et
-`ρ = 0,30` entre Q9 et Q10.
+Attention, il y a aujourd'hui deux versions qui ne disent pas la même chose.
+
+`data/network_config.json`, tenu par le Membre 1, déclare `ρ = 0,3` sur 9 paires de quartiers
+voisins : Q2-Q3, Q3-Q4, Q4-Q5, Q3-Q6, Q2-Q4, Q5-Q6, Q6-Q7, Q7-Q8 et Q6-Q8. Q1 n'apparaît dans
+aucune paire, ce qui est cohérent avec son isolement au bout d'une seule conduite.
+
+Le code du Membre 3 utilise une autre règle, codée en dur : `ρ = 0,40` entre quartiers
+directement reliés, `ρ = 0,15` entre quartiers séparés par deux conduites. Il faut trancher
+entre les deux avant la remise, sinon le rapport et le code diront des choses différentes.
 
 ### 4.2 La covariance et sa matrice
 
@@ -111,7 +123,8 @@ La covariance est la même idée, mais non normalisée. Elle se relie à la corr
 Σ_ij = ρ_ij × σ_i × σ_j
 ```
 
-On range toutes ces valeurs dans un tableau carré de 10 lignes et 10 colonnes, la matrice de
+On range toutes ces valeurs dans un tableau carré de 8 lignes et 8 colonnes, un par quartier,
+la matrice de
 covariance, notée `Σ` (sigma majuscule, à ne pas confondre avec le Σ de la somme). Sur la
 diagonale, on trouve les variances `σ_i²`, puisque `ρ_ii = 1`.
 
@@ -344,14 +357,15 @@ qui se trouve en plus en bout de réseau, relié par une seule conduite, cumule 
 statistique et un risque structurel. C'est là que la partie probabilités et la partie graphe se
 rejoignent, et ce genre de synthèse est ce qu'une grille de notation récompense.
 
-Dans notre réseau, Q10 est le candidat évident.
+Dans notre réseau, Q1 est le candidat évident : seul quartier de degré 1, et seul quartier que
+le modèle de corrélation laisse complètement isolé des autres.
 
 ---
 
 ## Ce qu'il faut savoir refaire au tableau
 
 - Dessiner une courbe en cloche et placer `µ`, `µ ± σ`, `µ ± 2σ` avec les pourcentages.
-- Donner l'intervalle à 95 % de Q1 de tête, à partir de `µ = 120` et `σ = 18`.
+- Donner l'intervalle à 95 % de Q1 de tête, à partir de `µ = 25` et `σ = 5`.
 - Expliquer le théorème central limite avec les robinets du quartier, sans formule.
 - Dire pourquoi `n − 1` et pas `n` dans la variance empirique.
 - Dire pourquoi Student et pas la loi normale pour l'intervalle de confiance.
