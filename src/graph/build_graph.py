@@ -16,8 +16,9 @@ from __future__ import annotations
 
 import numpy as np
 
-# NOTE : import différé de networkx tant que le module n'est pas implémenté,
-# pour que le dépôt reste importable avant l'installation des dépendances.
+# Import différé de networkx : uniquement à l'intérieur de construire_graphe,
+# pour que le reste du module (matrice A, second membre, coûts) reste
+# importable et testable même sans networkx installé.
 
 
 def construire_graphe(reseau):
@@ -33,8 +34,61 @@ def construire_graphe(reseau):
     Returns:
         Un ``networkx.DiGraph``.
     """
-    raise NotImplementedError("M2, Étape 2.")
+    import networkx as nx
 
+    graphe = nx.DiGraph()
+
+    for r in reseau.reservoirs:
+        graphe.add_node(r.identifiant, type="reservoir", offre=r.offre)
+
+    for q in reseau.quartiers:
+        graphe.add_node(q.identifiant, type="quartier", mu=q.mu, sigma=q.sigma)
+
+    for c in reseau.conduites:
+        graphe.add_edge(c.source, c.cible, capacite=c.capacite, cout=c.cout)
+
+    return graphe
+
+def afficher_graphe(graphe):
+    """Affiche graphiquement le graphe orienté avec NetworkX et Matplotlib."""
+
+    import matplotlib.pyplot as plt
+    import networkx as nx
+
+    # Position des nœuds
+    pos = nx.spring_layout(graphe, seed=42)
+
+    # Création de la figure
+    plt.figure(figsize=(10, 7))
+
+    # Dessin du graphe
+    nx.draw_networkx(
+        graphe,
+        pos,
+        with_labels=True,
+        arrows=True,
+        node_size=2000,
+        font_size=10,
+        arrowsize=20
+    )
+
+    # Affichage des capacités et coûts sur les arcs
+    labels = {
+        (source, cible): f"cap={data['capacite']}, c={data['cout']}"
+        for source, cible, data in graphe.edges(data=True)
+    }
+
+    nx.draw_networkx_edge_labels(
+        graphe,
+        pos,
+        edge_labels=labels,
+        font_size=8
+    )
+
+    plt.title("Graphe orienté du réseau de distribution d'eau")
+    plt.axis("off")
+    plt.tight_layout()
+    plt.show()
 
 def construire_matrice_incidence(reseau) -> np.ndarray:
     """Construit la matrice d'incidence orientée A du réseau.
@@ -63,10 +117,18 @@ def construire_matrice_incidence(reseau) -> np.ndarray:
     Returns:
         A, de forme (|V|, |E|), dans l'ordre de nœuds donné par ``reseau.noeuds``.
     """
-    raise NotImplementedError(
-        "M2, Étape 3. Livrable : A codée et testée, plus l'interprétation "
-        "physique de Aq = b rédigée et validée (checklist, section 13)."
-    )
+    noeuds = reseau.noeuds
+    index_noeud = {identifiant: i for i, identifiant in enumerate(noeuds)}
+
+    n = len(noeuds)
+    m = len(reseau.conduites)
+    A = np.zeros((n, m), dtype=float)
+
+    for e, conduite in enumerate(reseau.conduites):
+        A[index_noeud[conduite.cible], e] = +1.0   # l'arête entre dans cible
+        A[index_noeud[conduite.source], e] = -1.0  # l'arête sort de source
+
+    return A
 
 
 def construire_second_membre(reseau, demandes: np.ndarray) -> np.ndarray:
@@ -77,6 +139,15 @@ def construire_second_membre(reseau, demandes: np.ndarray) -> np.ndarray:
     Monte-Carlo de M5 produit un vecteur ``demandes``, qui produit un b, qui
     produit un q* différent.
 
+    Hypothèse à valider avec M1/M4 : la part de la demande totale injectée par
+    chaque réservoir n'est pas spécifiée par le sujet. On la répartit ici au
+    prorata de l'offre maximale de chaque réservoir (offre_i / Σ offre), ce qui
+    garantit la conservation globale (Σ b = 0) quel que soit le scénario tiré,
+    tant que la demande totale ne dépasse pas l'offre totale. Si le groupe
+    préfère une autre règle de répartition (ex. décidée par M4 comme variable
+    libre du problème d'optimisation), cette fonction est le seul endroit à
+    modifier.
+
     Args:
         reseau: le ``Reseau``.
         demandes: vecteur des D_i, dans l'ordre de ``reseau.quartiers``.
@@ -84,7 +155,33 @@ def construire_second_membre(reseau, demandes: np.ndarray) -> np.ndarray:
     Returns:
         b, de longueur |V|, aligné sur ``reseau.noeuds``.
     """
-    raise NotImplementedError("M2, Étape 3, avec M3 pour le format des demandes.")
+    noeuds = reseau.noeuds
+    index_noeud = {identifiant: i for i, identifiant in enumerate(noeuds)}
+    n = len(noeuds)
+
+    demandes = np.asarray(demandes, dtype=float)
+    if demandes.shape != (len(reseau.quartiers),):
+        raise ValueError(
+            f"demandes doit être de longueur {len(reseau.quartiers)} "
+            f"(un débit par quartier, dans l'ordre de reseau.quartiers), "
+            f"reçu de forme {demandes.shape}."
+        )
+
+    b = np.zeros(n, dtype=float)
+
+    # Quartiers : b_i = +D_i (demande consommée).
+    for quartier, d_i in zip(reseau.quartiers, demandes):
+        b[index_noeud[quartier.identifiant]] = d_i
+
+    # Réservoirs : b_i = -offre_i injectée, répartie au prorata des offres
+    # maximales déclarées par M1 (voir hypothèse documentée ci-dessus).
+    offre_totale = sum(r.offre for r in reseau.reservoirs)
+    demande_totale = float(demandes.sum())
+    for r in reseau.reservoirs:
+        part = r.offre / offre_totale
+        b[index_noeud[r.identifiant]] = -part * demande_totale
+
+    return b
 
 
 def vecteur_couts(reseau) -> np.ndarray:
@@ -95,4 +192,36 @@ def vecteur_couts(reseau) -> np.ndarray:
     convexité de J : elle est vérifiée par ``valider_reseau``, et doit être
     citée comme hypothèse dans la démonstration de M4.
     """
-    raise NotImplementedError("M2, Étape 3.")
+    return np.array([c.cout for c in reseau.conduites], dtype=float)
+
+
+if __name__ == "__main__":
+    import sys
+    from pathlib import Path
+
+    # generate_network.py vit dans data/, un dossier frère de src/ : on
+    # l'ajoute explicitement au chemin de recherche des modules.
+    racine_projet = Path(__file__).resolve().parents[2]
+    sys.path.insert(0, str(racine_projet / "data"))
+
+    from data.generate_network import charger_reseau
+
+    chemin_config = racine_projet / "data" / "network_config.json"
+    reseau = charger_reseau(chemin_config)
+
+    graphe = construire_graphe(reseau)
+    A = construire_matrice_incidence(reseau)
+    afficher_graphe(graphe)
+    
+    c = vecteur_couts(reseau)
+    b_exemple = construire_second_membre(
+        reseau, demandes=np.array([q.mu for q in reseau.quartiers])
+    )
+
+    print("=== CONSTRUCTION DU GRAPHE ET DE LA MATRICE D'INCIDENCE ===")
+    print(f"Graphe : {graphe.number_of_nodes()} nœuds, {graphe.number_of_edges()} arêtes")
+    print(f"Matrice A : forme {A.shape}")
+    print("\nMatrice d'incidence A :")
+    print(A)
+    print(f"Vecteur des coûts c_e : {c}")
+    print(f"Second membre b (demandes = µ) : {b_exemple}, somme = {b_exemple.sum():.6f}")
