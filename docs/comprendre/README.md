@@ -27,12 +27,13 @@ corrélations déclarées par M1 diffèrent de celles codées par M3, et les hui
 | Ordre | Document | Durée | Quand |
 |---|---|---|---|
 | 1 | [01_le_projet_sans_maths.md](01_le_projet_sans_maths.md) | 20 min | Tout de suite, et la veille de la soutenance |
-| 2 | [02_maths_graphe_et_algebre.md](02_maths_graphe_et_algebre.md) | 45 min | Avant de toucher à `src/graph/` |
-| 3 | [03_maths_probabilites_et_statistiques.md](03_maths_probabilites_et_statistiques.md) | 45 min | Avant de coder `monte_carlo.py` |
-| 4 | [04_maths_optimisation.md](04_maths_optimisation.md) | 1 h | Avant de coder `objective.py`. Le plus important |
-| 5 | [05_role_membre_5.md](05_role_membre_5.md) | 20 min | Pour savoir par quoi commencer dès aujourd'hui |
-| 6 | [06_soutenance_questions_reponses.md](06_soutenance_questions_reponses.md) | 40 min | À réviser une semaine avant la soutenance |
-| 7 | [07_glossaire.md](07_glossaire.md) | consultation | À garder ouvert pendant toute la lecture |
+| 2 | [08_ce_qui_existe_deja.md](08_ce_qui_existe_deja.md) | 25 min | Juste après, pour voir ce qui est déjà construit |
+| 3 | [02_maths_graphe_et_algebre.md](02_maths_graphe_et_algebre.md) | 45 min | Avant de toucher à `src/graph/` |
+| 4 | [03_maths_probabilites_et_statistiques.md](03_maths_probabilites_et_statistiques.md) | 45 min | Avant de coder `monte_carlo.py` |
+| 5 | [04_maths_optimisation.md](04_maths_optimisation.md) | 1 h | Avant de coder `objective.py`. Le plus important |
+| 6 | [05_role_membre_5.md](05_role_membre_5.md) | 20 min | Pour savoir par quoi commencer dès aujourd'hui |
+| 7 | [06_soutenance_questions_reponses.md](06_soutenance_questions_reponses.md) | 40 min | À réviser une semaine avant la soutenance |
+| 8 | [07_glossaire.md](07_glossaire.md) | consultation | À garder ouvert pendant toute la lecture |
 
 Le document [00_prompt_optimise.md](00_prompt_optimise.md) contient le prompt qui a servi à
 produire ce dossier, et une explication de ce qui a été ajouté au prompt de départ. Il sert de

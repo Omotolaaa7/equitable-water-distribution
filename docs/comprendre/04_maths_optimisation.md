@@ -39,7 +39,7 @@ Tout le gradient du projet se déduit de ces deux lignes, plus la règle de comp
 
 Notre fonction `J` ne dépend pas d'une seule variable mais de 13, un débit par conduite.
 
-La dérivée partielle par rapport à `q_3`, notée `∂J/∂q_3`, se calcule en gelant les 14 autres
+La dérivée partielle par rapport à `q_3`, notée `∂J/∂q_3`, se calcule en gelant les 12 autres
 variables et en dérivant comme si `q_3` était la seule.
 
 Le symbole `∂` (d rond) sert uniquement à signaler qu'on gèle le reste. La mécanique de calcul
@@ -181,7 +181,7 @@ La démonstration, à savoir refaire. On cherche le `y ≥ 0` qui minimise `‖y
 ```
 
 Chaque terme de la somme ne dépend que d'une seule composante. Le problème se sépare donc en
-15 problèmes indépendants, et chacun s'écrit : trouver `y_e ≥ 0` qui minimise `(y_e − q_e)²`.
+13 problèmes indépendants, et chacun s'écrit : trouver `y_e ≥ 0` qui minimise `(y_e − q_e)²`.
 
 Si `q_e ≥ 0`, le minimum est atteint en `y_e = q_e`, avec une distance nulle.
 Si `q_e < 0`, la fonction est croissante sur les `y_e ≥ 0`, donc le minimum est en `y_e = 0`.
