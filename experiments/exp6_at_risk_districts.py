@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """Expérience 6 : identification des quartiers à risque.
 
 Responsable : M3, avec M5 pour l'exécution.
