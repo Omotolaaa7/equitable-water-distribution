@@ -1,7 +1,5 @@
 """Expérience 6 : identification des quartiers à risque.
 
-Responsable : M3, avec M5 pour l'exécution.
-Dépend de : les estimateurs et intervalles de confiance de l'Étape 4.
 
 Exploite le volet statistique pour enrichir l'interprétation. C'est
 l'expérience qui relie le travail probabiliste au terrain : elle produit
@@ -42,7 +40,6 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-=======
 """
 Expérience 6 : Analyse des Quartiers à Risque et Génération des Figures du Rapport
 Auteur : Membre 3 (Probabilités et Statistiques)
@@ -219,4 +216,3 @@ def run_experiment_6():
 
 if __name__ == "__main__":
     run_experiment_6()
->>>>>>> 9ede8c2 (Probabilité: libvrable membre 3)
