@@ -67,8 +67,9 @@ pip install -r requirements.txt
 pytest
 ```
 
-Les 8 tests doivent s'afficher comme ignorés, pas en erreur. S'ils sont en erreur, c'est un
-problème d'installation à régler avant tout le reste.
+Sept tests doivent passer et huit s'afficher comme ignorés, aucun en erreur. Les ignorés sont
+ceux qui attendent le jalon. Une erreur signale un problème d'installation à régler avant tout
+le reste.
 
 **La compréhension du code existant.** Les squelettes de `src/` contiennent déjà, dans leurs
 docstrings, le contrat de chaque fonction, son responsable et la formule qu'elle implémentera.
@@ -92,7 +93,7 @@ avec les intentions écrites.
 
 | Ce que je veux coder | Bloqué par | Ce que j'attends précisément |
 |---|---|---|
-| `monte_carlo.generer_scenarios` | plus par M3 | Le modèle est livré, mais sous forme de classe. Voir la décision à prendre ci-dessous |
+| `monte_carlo.generer_scenarios` | plus rien | Le modèle de demande est livré, testé, et lit la configuration |
 | `objective.objectif` | M4 | La formule de `J(q)` écrite et validée par le groupe |
 | `objective.gradient` | M4 | La dérivation de `∇J` relue par deux membres |
 | `gradient_descent.pas_maximal_theorique` | M4 et M2 | La borne `2/L` et la façon de calculer `L` |
@@ -106,33 +107,24 @@ Cette règle vient de la contrainte méthodologique 1 du sujet, elle est notée,
 request qui implémente une formule doit pointer vers la section du rapport où elle est
 démontrée.
 
-### La décision à prendre sur le modèle de demande
+### L'état du modèle de demande
 
-Le Membre 3 a livré son travail, mais pas là où les expériences vont le chercher. Il a écrit
-une classe `DemandModel` à la fin de `demand_model.py`, et les huit fonctions du squelette,
-celles que `monte_carlo.py` et les six expériences appellent, lèvent toujours
-`NotImplementedError`.
+Les huit fonctions que `monte_carlo.py` et les six expériences appellent sont écrites et
+testées. Elles lisent `data/network_config.json`, moyennes, écarts-types et corrélations
+comprises, donc le fichier du Membre 1 est bien la seule source de vérité.
 
-Deux façons de recoller, et le choix vous revient puisque c'est vous qui codez la suite.
+La classe `DemandModel` existe toujours à la fin du fichier. Elle délègue maintenant aux
+mêmes fonctions, donc les deux façons d'appeler donnent le même résultat. Vous pouvez utiliser
+l'une ou l'autre sans risque.
 
-**Brancher les fonctions sur la classe.** Chaque fonction du squelette devient une ou deux
-lignes qui instancient `DemandModel` et appellent la méthode correspondante. Environ 30 lignes
-en tout, rien d'autre ne bouge, les six expériences fonctionnent sans modification. C'est ce
-que je ferais.
+Une chose reste à savoir avant de coder par-dessus. Une structure de configuration non
+reconnue lève désormais une exception explicite, au lieu de retomber en silence sur des
+valeurs internes. Si vous voyez passer un `ValueError: Aucun quartier lisible`, c'est que le
+chemin du fichier est faux, pas que le modèle est cassé.
 
-**Réécrire `monte_carlo.py` autour de la classe.** Plus propre sur le papier, mais il faut
-alors reprendre les six scripts d'expérience, et le travail déjà fait par le Membre 3 dans
-`exp6` devient un cas particulier à part.
-
-Dans les deux cas, un problème reste à régler avec le Membre 1. La classe code en dur les
-moyennes, les écarts-types et les corrélations, sans jamais lire `data/network_config.json`.
-Les moyennes et les écarts-types concordent, les corrélations non : M1 déclare 0,3 sur 9 paires
-précises, la classe utilise 0,40 entre voisins directs et 0,15 à deux conduites. Tant que ce
-n'est pas tranché, le rapport et le code décrivent deux modèles différents.
-
-Un troisième détail à corriger en passant : `experiments/exp6_at_risk_districts.py` ne
-s'exécute pas en ligne de commande. Le `main()` du squelette est resté en tête de fichier et
-lève son erreur avant que le code du Membre 3, collé en dessous, ne soit atteint.
+Un détail reste à corriger : `experiments/exp6_at_risk_districts.py` ne s'exécute pas en
+ligne de commande. Le `main()` du squelette est resté en tête de fichier et lève son erreur
+avant que le code du Membre 3, collé en dessous, ne soit atteint.
 
 ## 5. L'ordre de travail recommandé
 

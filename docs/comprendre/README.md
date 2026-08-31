@@ -18,9 +18,12 @@ le quartier fragile est Q1 et non plus Q10.
 Toutes les valeurs citées ici ont été recalculées en exécutant le code fusionné sur
 `data/network_config.json`. Si M1 modifie à nouveau la topologie, il faut refaire ce passage.
 
-Deux points d'intégration restent ouverts et sont signalés dans les documents concernés : les
-corrélations déclarées par M1 diffèrent de celles codées par M3, et les huit fonctions de
-`demand_model.py` que les expériences appellent sont toujours vides.
+Le 31 août, le modèle de demande a été branché sur `network_config.json`, ce qui a supprimé
+l'écart de corrélations entre le fichier du Membre 1 et le code du Membre 3. Sept tests le
+vérifient désormais paire par paire.
+
+Un point reste ouvert et il est signalé dans les documents concernés :
+`experiments/exp6_at_risk_districts.py` ne s'exécute pas en ligne de commande.
 
 ## Dans quel ordre lire
 

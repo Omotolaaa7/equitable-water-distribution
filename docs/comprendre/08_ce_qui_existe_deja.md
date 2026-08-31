@@ -1,6 +1,7 @@
 # Ce qui existe déjà, expliqué simplement
 
-État du projet au 30 août 2026, après la fusion des branches. Toutes les valeurs de ce document
+État du projet au 31 août 2026, après la fusion des branches et le branchement du modèle de
+demande sur le fichier de configuration. Toutes les valeurs de ce document
 ont été produites en exécutant le code du dépôt, pas recopiées d'ailleurs.
 
 À lire juste après [01_le_projet_sans_maths.md](01_le_projet_sans_maths.md). Le document 01
@@ -260,7 +261,7 @@ démonstrations. C'est le jalon du plan de projet, et il est noté.
 | `data/generate_network.py` | 372 | Fait par M1 |
 | `src/graph/build_graph.py` | 226 | Fait par M2 |
 | `src/graph/graph_analysis.py` | 260 | Fait par M2 |
-| `src/probability/demand_model.py` | 409 | Fait par M3, mais 8 fonctions du squelette restent vides |
+| `src/probability/demand_model.py` | 358 | Fait par M3, lit la configuration, 7 tests passent |
 | `src/probability/monte_carlo.py` | 92 | 4 fonctions vides, à faire par M5 |
 | `src/optimization/objective.py` | 149 | 6 fonctions vides, bloquées par le jalon |
 | `src/optimization/gradient_descent.py` | 135 | 3 fonctions vides, bloquées par le jalon |
@@ -317,28 +318,34 @@ Ceux qui reviennent le plus souvent, avec leur traduction en langage courant.
 Le glossaire complet, avec les symboles mathématiques, est dans
 [07_glossaire.md](07_glossaire.md).
 
-## 11. Les deux problèmes ouverts, en langage simple
+## 11. Un problème réglé, un problème restant
 
-### Les corrélations ne concordent pas
+### Les corrélations, réglé le 31 août 2026
 
-Le fichier de configuration du Membre 1 et le code du Membre 3 ne disent pas la même chose sur
-la façon dont les quartiers consomment ensemble.
+Pendant plusieurs jours, le fichier du Membre 1 et le code du Membre 3 ne disaient pas la même
+chose sur la façon dont les quartiers consomment ensemble. Le fichier annonçait 0,30 sur neuf
+paires, le code utilisait 0,40 entre voisins directs et 0,15 à deux conduites. Sur 28 paires,
+15 divergeaient.
 
-Le fichier dit 0,30 sur neuf paires précises. Le code dit 0,40 entre quartiers directement
-reliés et 0,15 entre quartiers séparés par deux conduites. Sur les 28 paires possibles, 15 ne
-concordent pas.
+La cause était bête et instructive. Le code cherchait des cases nommées en anglais,
+`districts` et `correlations`, alors que le fichier les nomme en français, `noeuds` et
+`correlations_voisinage`. Aucun nom ne correspondait, et le code retombait en silence sur des
+valeurs écrites en dur.
 
-L'écart compte. Selon la version retenue, le risque que la demande dépasse l'offre passe de un
-jour sur 116 à un jour sur 56. La conclusion de l'Expérience 2 changerait.
+Le code lit maintenant les bons noms, et une structure inconnue lève une erreur explicite au
+lieu de se rabattre sans rien dire. Sept tests dans `tests/test_demand_model.py` comparent
+paire par paire ce que le code charge et ce que le fichier déclare.
 
-Il faut qu'une seule règle survive, et qu'elle vive dans `network_config.json`.
+La règle du Membre 3 reste disponible sous le nom `paires_voisinage_depuis_topologie`, qui la
+déduit du graphe. Elle produit les entrées à coller dans le fichier si le groupe la retient.
 
-### Le code du Membre 3 ne lit pas le fichier de configuration
+### L'expérience 6 ne se lance toujours pas
 
-Il contient ses propres chiffres, retapés à la main. Si le Membre 1 corrige une valeur demain,
-elle ne sera pas prise en compte, et sans aucun message d'erreur.
+Le bout de squelette est resté en haut du fichier et lève son erreur avant d'atteindre le vrai
+code. Les quatre figures existent, elles ont donc été produites en appelant la fonction
+autrement.
 
-C'est le genre de panne silencieuse qui se découvre la veille du rendu.
+La correction tient en quelques lignes, et elle n'a pas encore été faite.
 
 ## 12. Ce qui vient ensuite, dans l'ordre
 

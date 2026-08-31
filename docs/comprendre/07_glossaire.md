@@ -206,8 +206,8 @@ connue.
 | Marge d'offre voulue par M1 | 20 % |
 | Coûts unitaires `c_e` | de 0,9 à 1,6 |
 | Coefficient de variation des demandes | de 16,7 % à 20 % |
-| Corrélations déclarées par M1 | 0,3 sur 9 paires de quartiers |
-| Corrélations codées par M3 | 0,40 entre voisins, 0,15 à deux conduites |
+| Corrélations en vigueur | 0,3 sur 9 paires, lues depuis network_config.json |
+| Règle alternative disponible | 0,40 entre voisins, 0,15 à deux conduites |
 | Tirages Monte-Carlo de référence | 1000 |
 | Échelles vérifiées | 100, 1000, 10 000 |
 | Graine aléatoire | 42, fixée dans le code de M3 |

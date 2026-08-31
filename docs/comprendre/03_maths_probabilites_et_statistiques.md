@@ -105,15 +105,19 @@ La corrélation, notée `ρ` (rho), mesure ça. Elle vaut entre `−1` et `+1`.
 `ρ = 0,4` : quand l'un monte, l'autre a tendance à monter aussi.
 `ρ = −1` : quand l'un monte, l'autre descend systématiquement.
 
-Attention, il y a aujourd'hui deux versions qui ne disent pas la même chose.
-
 `data/network_config.json`, tenu par le Membre 1, déclare `ρ = 0,3` sur 9 paires de quartiers
 voisins : Q2-Q3, Q3-Q4, Q4-Q5, Q3-Q6, Q2-Q4, Q5-Q6, Q6-Q7, Q7-Q8 et Q6-Q8. Q1 n'apparaît dans
 aucune paire, ce qui est cohérent avec son isolement au bout d'une seule conduite.
 
-Le code du Membre 3 utilise une autre règle, codée en dur : `ρ = 0,40` entre quartiers
-directement reliés, `ρ = 0,15` entre quartiers séparés par deux conduites. Il faut trancher
-entre les deux avant la remise, sinon le rapport et le code diront des choses différentes.
+Le code lit ces valeurs, et rien d'autre. Toute paire non déclarée est traitée comme
+indépendante. Le test `tests/test_demand_model.py` compare paire par paire ce que le code
+charge et ce que le fichier déclare, et il échoue si une seule valeur diverge.
+
+Le Membre 3 avait proposé une règle plus fine, `ρ = 0,40` entre quartiers directement reliés
+et `ρ = 0,15` entre quartiers séparés par deux conduites. Elle reste disponible dans
+`paires_voisinage_depuis_topologie`, qui la déduit du graphe au lieu de l'écrire à la main.
+Si le groupe la retient, cette fonction produit les entrées à coller dans
+`network_config.json`, pour que le fichier reste la seule source de vérité.
 
 ### 4.2 La covariance et sa matrice
 

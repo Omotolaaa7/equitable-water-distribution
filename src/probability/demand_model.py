@@ -15,86 +15,188 @@ import numpy as np
 from scipy import stats
 
 
-def parametres_demande(reseau: Union[dict, object]) -> tuple[np.ndarray, np.ndarray]:
+# ---------------------------------------------------------------------------
+# Lecture du réseau : une seule source de vérité
+# ---------------------------------------------------------------------------
+#
+# Le fichier ``data/network_config.json``, tenu par le Membre 1, nomme ses cases
+# en français : ``noeuds`` contenant ``quartiers``, et ``correlations_voisinage``.
+# Les fonctions ci-dessous lisent ces noms.
+#
+# Il n'y a volontairement plus aucune valeur de repli codée en dur. Un repli
+# silencieux faisait travailler tout le projet sur des chiffres absents du
+# rapport, sans qu'aucune erreur ne se déclenche. Une structure non reconnue
+# lève désormais une exception qui dit ce qu'elle a trouvé.
+
+
+def _quartiers_depuis(reseau) -> tuple[list, np.ndarray, np.ndarray]:
+    """Retourne (identifiants, mu, sigma) des quartiers, dans l'ordre du réseau.
+
+    Accepte l'objet ``Reseau`` de ``data/generate_network.py``, le dictionnaire
+    issu directement de ``network_config.json``, ou les variantes anglaises
+    ``districts`` et ``demands`` conservées par compatibilité.
+
+    Raises:
+        ValueError: si la structure ne contient aucun quartier lisible.
+        TypeError: si l'objet reçu n'est ni un réseau ni un dictionnaire.
+    """
+    if hasattr(reseau, "quartiers"):
+        quartiers = list(reseau.quartiers)
+        identifiants = [
+            getattr(q, "identifiant", getattr(q, "id", f"Q{i + 1}"))
+            for i, q in enumerate(quartiers)
+        ]
+        mu = [float(q.mu) for q in quartiers]
+        sigma = [float(q.sigma) for q in quartiers]
+        return identifiants, np.array(mu, dtype=np.float64), np.array(sigma, dtype=np.float64)
+
+    if isinstance(reseau, dict):
+        quartiers = reseau.get("noeuds", {}).get("quartiers")
+        if quartiers is None:
+            quartiers = reseau.get("districts")
+        if quartiers is not None:
+            identifiants = [str(q.get("id", f"Q{i + 1}")) for i, q in enumerate(quartiers)]
+            mu = [float(q["mu"]) for q in quartiers]
+            sigma = [float(q["sigma"]) for q in quartiers]
+            return identifiants, np.array(mu, dtype=np.float64), np.array(sigma, dtype=np.float64)
+        if "demands" in reseau:
+            identifiants = list(reseau["demands"])
+            mu = [float(reseau["demands"][q]["mu"]) for q in identifiants]
+            sigma = [float(reseau["demands"][q]["sigma"]) for q in identifiants]
+            return identifiants, np.array(mu, dtype=np.float64), np.array(sigma, dtype=np.float64)
+        raise ValueError(
+            "Aucun quartier lisible dans la configuration. Clés trouvées à la racine : "
+            f"{sorted(reseau)}. Attendu la clé 'noeuds' contenant 'quartiers'."
+        )
+
+    raise TypeError(
+        f"Type de réseau non reconnu : {type(reseau).__name__}. Passer l'objet Reseau "
+        "de data/generate_network.py, ou le dictionnaire de network_config.json."
+    )
+
+
+def _paires_correlees_depuis(reseau, identifiants: list) -> list:
+    """Retourne les paires corrélées déclarées, sous forme (i, j, rho).
+
+    Lit ``correlations_voisinage``, dont chaque entrée a la forme
+    ``{"quartiers": ["Q2", "Q3"], "rho": 0.3}``. Une entrée citant plus de deux
+    quartiers est traitée comme un groupe : toutes ses paires internes reçoivent
+    le même rho.
+
+    Une configuration sans déclaration de corrélation décrit des quartiers
+    indépendants, et retourne une liste vide.
+    """
+    position = {identifiant: i for i, identifiant in enumerate(identifiants)}
+
+    if isinstance(reseau, dict):
+        declarations = reseau.get("correlations_voisinage") or reseau.get("correlations") or []
+    else:
+        declarations = list(getattr(reseau, "correlations_voisinage", []) or [])
+
+    paires = []
+    for item in declarations:
+        rho = float(item.get("rho", item.get("correlation", 0.0)))
+        groupe = item.get("quartiers") or item.get("pair") or [
+            item.get("u") or item.get("district_1"),
+            item.get("v") or item.get("district_2"),
+        ]
+        groupe = [g for g in groupe if g in position]
+        for a in range(len(groupe)):
+            for b in range(a + 1, len(groupe)):
+                paires.append((position[groupe[a]], position[groupe[b]], rho))
+    return paires
+
+
+def parametres_demande(reseau) -> tuple[np.ndarray, np.ndarray]:
     """Extrait les vecteurs (µ_i) et (σ_i) dans l'ordre des quartiers.
 
     Args:
-        reseau: Dictionnaire de configuration (issu de network_config.json)
-                ou objet réseau de Membre 1.
+        reseau: l'objet ``Reseau`` du Membre 1, ou le dictionnaire de
+            ``network_config.json``.
 
     Returns:
         Le couple (mu, sigma), chacun de longueur |quartiers|.
     """
-    if isinstance(reseau, dict):
-        if "districts" in reseau:
-            mu = [float(d["mu"]) for d in reseau["districts"]]
-            sigma = [float(d["sigma"]) for d in reseau["districts"]]
-        elif "demands" in reseau:
-            mu = [float(reseau["demands"][q]["mu"]) for q in reseau["demands"]]
-            sigma = [float(reseau["demands"][q]["sigma"]) for q in reseau["demands"]]
-        else:
-            mu = [25.0, 40.0, 35.0, 45.0, 40.0, 50.0, 30.0, 35.0]
-            sigma = [5.0, 7.0, 6.0, 8.0, 7.0, 9.0, 5.0, 6.0]
-    elif hasattr(reseau, "quartiers"):
-        mu = [float(getattr(q, "mu", 35.0)) for q in reseau.quartiers]
-        sigma = [float(getattr(q, "sigma", 6.0)) for q in reseau.quartiers]
-    else:
-        mu = [25.0, 40.0, 35.0, 45.0, 40.0, 50.0, 30.0, 35.0]
-        sigma = [5.0, 7.0, 6.0, 8.0, 7.0, 9.0, 5.0, 6.0]
-
-    return np.array(mu, dtype=np.float64), np.array(sigma, dtype=np.float64)
+    _, mu, sigma = _quartiers_depuis(reseau)
+    return mu, sigma
 
 
-def matrice_covariance(reseau: Union[dict, object]) -> np.ndarray:
+def matrice_covariance(reseau) -> np.ndarray:
     """Construit la matrice de covariance Σ des demandes des quartiers.
 
-    Construction : Σ_ij = ρ_ij · σ_i · σ_j, avec ρ_ii = 1.
-    Contrôle de définie-positivité inclus (valeurs propres strictement > 0).
+    Construction : Σ_ij = ρ_ij · σ_i · σ_j, avec ρ_ii = 1. Les ρ_ij viennent
+    exclusivement de ce que le Membre 1 déclare dans ``correlations_voisinage``.
+    Toute paire non déclarée est supposée indépendante.
+
+    Piège à vérifier plutôt qu'à supposer : une matrice de corrélation assemblée
+    paire par paire n'est pas automatiquement définie positive. Si elle ne l'est
+    pas, elle ne correspond à aucune loi gaussienne réelle et l'échantillonnage
+    échouera. Le contrôle est fait ici, et il lève plutôt que de corriger en
+    silence.
 
     Returns:
         Σ, de forme (|quartiers|, |quartiers|).
     """
-    mu, sigma = parametres_demande(reseau)
-    n = len(mu)
+    identifiants, _, sigma = _quartiers_depuis(reseau)
+    n = len(identifiants)
 
-    # 1. Extraction ou construction de la matrice de corrélation R
-    if isinstance(reseau, dict) and "correlation_matrix" in reseau:
-        R = np.array(reseau["correlation_matrix"], dtype=np.float64)
-    elif isinstance(reseau, dict) and "correlations" in reseau:
-        R = np.eye(n, dtype=np.float64)
-        quartiers_ids = [d.get("id", f"Q{i+1}") for i, d in enumerate(reseau.get("districts", []))]
-        for item in reseau["correlations"]:
-            u = item.get("u") or item.get("district_1") or item.get("pair", [None, None])[0]
-            v = item.get("v") or item.get("district_2") or item.get("pair", [None, None])[1]
-            rho = float(item.get("rho") or item.get("correlation", 0.30))
-            if u in quartiers_ids and v in quartiers_ids:
-                i, j = quartiers_ids.index(u), quartiers_ids.index(v)
-                R[i, j] = R[j, i] = rho
-    else:
-        # Modèle spatial par défaut (voisins directs = 0.40, 2 sauts = 0.15)
-        R = np.eye(n, dtype=np.float64)
-        adj_pairs = [(2,3), (3,4), (2,4), (4,5), (3,6), (5,6), (6,7), (7,8), (6,8)]
-        for u, v in adj_pairs:
-            if u <= n and v <= n:
-                R[u-1, v-1] = R[v-1, u-1] = 0.40
-        two_hop = [(2,5), (2,6), (3,5), (4,6), (5,7), (5,8)]
-        for u, v in two_hop:
-            if u <= n and v <= n:
-                R[u-1, v-1] = R[v-1, u-1] = 0.15
+    R = np.eye(n, dtype=np.float64)
+    for i, j, rho in _paires_correlees_depuis(reseau, identifiants):
+        R[i, j] = R[j, i] = rho
 
-    # 2. Covariance Sigma = D_sigma * R * D_sigma
     D_sigma = np.diag(sigma)
     Sigma = D_sigma @ R @ D_sigma
 
-    # 3. Contrôle des valeurs propres
     valeurs_propres = np.linalg.eigvalsh(Sigma)
     if np.any(valeurs_propres <= 0):
-        min_vp = np.min(valeurs_propres)
         raise ValueError(
-            f"La matrice de covariance Σ n'est pas définie positive ! Valeur propre minimale : {min_vp:.4e}"
+            "La matrice de covariance Σ n'est pas définie positive. Valeur propre "
+            f"minimale : {np.min(valeurs_propres):.4e}. Les corrélations déclarées "
+            "dans network_config.json ne décrivent aucune loi gaussienne réelle."
         )
 
     return Sigma
+
+
+def paires_voisinage_depuis_topologie(
+    reseau, rho_voisin: float = 0.40, rho_deux_sauts: float = 0.15
+) -> list:
+    """Propose des corrélations déduites de la topologie réelle du réseau.
+
+    Deux quartiers reliés par une conduite reçoivent ``rho_voisin``, deux
+    quartiers séparés par exactement deux conduites reçoivent ``rho_deux_sauts``.
+
+    Cette règle est celle proposée par le Membre 3. Elle ne s'applique pas toute
+    seule : la fonction retourne des entrées prêtes à coller dans
+    ``correlations_voisinage`` de ``network_config.json``, pour que le fichier
+    du Membre 1 reste la seule source de vérité.
+
+    Contrairement à une liste de paires écrite à la main, celle-ci se recalcule
+    si le Membre 1 modifie la topologie.
+
+    Returns:
+        Une liste d'entrées ``{"quartiers": [a, b], "rho": ρ}``.
+    """
+    identifiants, _, _ = _quartiers_depuis(reseau)
+    ensemble = set(identifiants)
+
+    voisins = {identifiant: set() for identifiant in identifiants}
+    conduites = reseau["conduites"] if isinstance(reseau, dict) else reseau.conduites
+    for c in conduites:
+        depart = c["de"] if isinstance(c, dict) else c.source
+        arrivee = c["vers"] if isinstance(c, dict) else c.cible
+        if depart in ensemble and arrivee in ensemble:
+            voisins[depart].add(arrivee)
+            voisins[arrivee].add(depart)
+
+    entrees = []
+    for a_index, a in enumerate(identifiants):
+        for b in identifiants[a_index + 1:]:
+            if b in voisins[a]:
+                entrees.append({"quartiers": [a, b], "rho": rho_voisin})
+            elif voisins[a] & voisins[b]:
+                entrees.append({"quartiers": [a, b], "rho": rho_deux_sauts})
+    return entrees
 
 
 def echantillonner(
