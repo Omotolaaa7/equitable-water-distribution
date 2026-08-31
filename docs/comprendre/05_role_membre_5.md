@@ -122,9 +122,8 @@ reconnue lève désormais une exception explicite, au lieu de retomber en silenc
 valeurs internes. Si vous voyez passer un `ValueError: Aucun quartier lisible`, c'est que le
 chemin du fichier est faux, pas que le modèle est cassé.
 
-Un détail reste à corriger : `experiments/exp6_at_risk_districts.py` ne s'exécute pas en
-ligne de commande. Le `main()` du squelette est resté en tête de fichier et lève son erreur
-avant que le code du Membre 3, collé en dessous, ne soit atteint.
+`experiments/exp6_at_risk_districts.py` s'exécute maintenant en ligne de commande et expose
+un `main()`, comme les cinq autres scripts d'expérience. Les six suivent donc la même forme.
 
 ## 5. L'ordre de travail recommandé
 

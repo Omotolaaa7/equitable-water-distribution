@@ -318,7 +318,7 @@ Ceux qui reviennent le plus souvent, avec leur traduction en langage courant.
 Le glossaire complet, avec les symboles mathématiques, est dans
 [07_glossaire.md](07_glossaire.md).
 
-## 11. Un problème réglé, un problème restant
+## 11. Deux problèmes réglés
 
 ### Les corrélations, réglé le 31 août 2026
 
@@ -339,13 +339,15 @@ paire par paire ce que le code charge et ce que le fichier déclare.
 La règle du Membre 3 reste disponible sous le nom `paires_voisinage_depuis_topologie`, qui la
 déduit du graphe. Elle produit les entrées à coller dans le fichier si le groupe la retient.
 
-### L'expérience 6 ne se lance toujours pas
+### L'expérience 6, réglée le 31 août 2026
 
-Le bout de squelette est resté en haut du fichier et lève son erreur avant d'atteindre le vrai
-code. Les quatre figures existent, elles ont donc été produites en appelant la fonction
-autrement.
+Le script plantait au lancement. Le bout de squelette était resté en haut du fichier et levait
+son erreur avant d'atteindre le vrai code, écrit en dessous. Les quatre figures existaient
+quand même, elles avaient été produites en appelant la fonction à la main.
 
-La correction tient en quelques lignes, et elle n'a pas encore été faite.
+Le script tourne maintenant de bout en bout, et ses quatre figures ont été régénérées. Celle
+des matrices de corrélation affichait encore 0,40 et 0,15, des valeurs qui ne sont plus celles
+du modèle.
 
 ## 12. Ce qui vient ensuite, dans l'ordre
 

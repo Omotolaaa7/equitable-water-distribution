@@ -22,8 +22,8 @@ Le 31 août, le modèle de demande a été branché sur `network_config.json`, c
 l'écart de corrélations entre le fichier du Membre 1 et le code du Membre 3. Sept tests le
 vérifient désormais paire par paire.
 
-Un point reste ouvert et il est signalé dans les documents concernés :
-`experiments/exp6_at_risk_districts.py` ne s'exécute pas en ligne de commande.
+Le même jour, `experiments/exp6_at_risk_districts.py` a été réparé : il s'exécute en ligne de
+commande, et ses quatre figures ont été régénérées avec les corrélations à jour.
 
 ## Dans quel ordre lire
 
