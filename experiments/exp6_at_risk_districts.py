@@ -33,23 +33,20 @@ from __future__ import annotations
 
 import _bootstrap  # noqa: F401
 
-
-def main() -> None:
-    raise NotImplementedError("M3 avec M5, Expérience 6.")
-
-
-if __name__ == "__main__":
-    main()
-"""
-Expérience 6 : Analyse des Quartiers à Risque et Génération des Figures du Rapport
-Auteur : Membre 3 (Probabilités et Statistiques)
-Projet : Distribution d'eau équitable sous incertitude (Thème 3)
-
-Ce script (Étape 4) :
-1. Importe le modèle probabiliste validé (src.probability.demand_model).
-2. Réalise l'analyse de risque stochastique et topologique (Expérience 6).
-3. Génère et enregistre les 4 figures scientifiques dans results/figures/.
-"""
+# ---------------------------------------------------------------------------
+# Implémentation du Membre 3 (Probabilités et Statistiques).
+#
+# Ce script (Étape 4) :
+# 1. Importe le modèle probabiliste validé (src.probability.demand_model).
+# 2. Réalise l analyse de risque stochastique et topologique (Expérience 6).
+# 3. Génère et enregistre les 4 figures scientifiques dans results/figures/.
+#
+# Note d intégration : le squelette d origine définissait ici un main() qui
+# levait NotImplementedError, suivi de son bloc if __name__ == "__main__".
+# Comme le code utile est écrit plus bas, ce bloc s exécutait en premier et le
+# script plantait avant de l atteindre. Les quatre figures avaient donc été
+# produites en appelant run_experiment_6 à la main.
+# ---------------------------------------------------------------------------
 
 import os
 import sys
@@ -214,5 +211,10 @@ def run_experiment_6():
     print("=" * 95)
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Point d entrée, commun aux six scripts d expérience."""
     run_experiment_6()
+
+
+if __name__ == "__main__":
+    main()
