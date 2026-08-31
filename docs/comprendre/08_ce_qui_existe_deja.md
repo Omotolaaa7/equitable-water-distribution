@@ -1,7 +1,7 @@
 # Ce qui existe déjà, expliqué simplement
 
-État du projet au 31 août 2026, après la fusion des branches et le branchement du modèle de
-demande sur le fichier de configuration. Toutes les valeurs de ce document
+État du projet au 31 août 2026, après la fusion des branches, le branchement du modèle de
+demande sur le fichier de configuration et la réparation de l Expérience 6. Toutes les valeurs de ce document
 ont été produites en exécutant le code du dépôt, pas recopiées d'ailleurs.
 
 À lire juste après [01_le_projet_sans_maths.md](01_le_projet_sans_maths.md). Le document 01
@@ -274,6 +274,55 @@ Une fonction « vide » contient sa description complète et son contrat, mais p
 calcul. Elle lève une erreur si on l'appelle. C'est voulu, pour éviter qu'un résultat faux passe
 inaperçu.
 
+### Où en est chaque membre, au 31 août 2026
+
+| Membre | Sa partie | État |
+|---|---|---|
+| M1, ATTIOU19 | Réseau et hypothèses | Livré. Configuration, code de chargement, 3 documents Word |
+| M2, Godwin Akakpo | Algèbre linéaire | Livré. Code complet et section de rapport compilée |
+| M3, CLEMOU | Probabilités et statistiques | Livré. Code complet, section de rapport, 4 figures |
+| **M4** | **Optimisation** | **Rien livré à ce jour.** Aucun commit, aucune section de rapport |
+| **M5** | **Code et expériences** | **1 expérience sur 6.** Les 4 modules restent vides |
+| M6 | Comparaison et rapport | Ne peut pas commencer tant que M5 n'a pas de résultats |
+
+### Les six expériences, une par une
+
+| Expérience | État | Qui |
+|---|---|---|
+| 1, référence contre `q*` | Non écrite | M5, bloquée par le jalon |
+| 2, robustesse Monte-Carlo | Non écrite | M5, bloquée par le jalon |
+| 3, sensibilité à `µ` | Non écrite | M5, bloquée par le jalon |
+| 4, borne de convergence | Non écrite | M5, bloquée par le jalon |
+| 5, maillage et conditionnement | Non écrite | M5, bloquée par le jalon |
+| 6, quartiers à risque | Faite et exécutable | M3 |
+
+L'Expérience 1 est le livrable central que le sujet réclame explicitement, la comparaison
+chiffrée entre la distribution actuelle et `q*`. Elle n'existe pas encore.
+
+Le dossier `results/tables/` est vide. Les quatre figures présentes viennent toutes de
+l'Expérience 6.
+
+### Ce qui bloque, en une phrase
+
+Le Membre 4 doit écrire ses démonstrations et les faire relire par deux personnes. Tant que ce
+jalon n'est pas franchi, le solveur ne peut pas être codé, les cinq expériences ne peuvent pas
+tourner, et le Membre 6 n'a rien à analyser.
+
+### Les corrections faites les 30 et 31 août
+
+Trois problèmes ont été trouvés en relisant le code fusionné, et réglés.
+
+Les corrélations entre quartiers différaient sur 15 paires sur 28 entre le fichier du Membre 1
+et le code du Membre 3. Le code cherchait des cases nommées en anglais dans un fichier nommé en
+français, et retombait en silence sur des valeurs écrites en dur. Le code lit maintenant les
+bons noms, et sept tests le vérifient paire par paire.
+
+L'Expérience 6 plantait au lancement, un bout de squelette étant resté en tête de fichier. Elle
+s'exécute maintenant de bout en bout.
+
+La figure des matrices de corrélation affichait encore les anciennes valeurs. Les quatre figures
+ont été régénérées.
+
 ## 9. Refaire ces calculs vous-même
 
 Toutes les valeurs de ce document se reproduisent en cinq minutes. Depuis la racine du dépôt,
@@ -351,15 +400,20 @@ du modèle.
 
 ## 12. Ce qui vient ensuite, dans l'ordre
 
-Le Membre 1 et le Membre 3 tranchent sur les corrélations, et la valeur retenue va dans le
-fichier de configuration.
+Le Membre 4 écrit sa preuve de convexité, dérive le gradient à la main, établit la borne sur le
+pas d'apprentissage et le critère d'arrêt, puis fait relire le tout par deux autres membres.
+C'est le jalon, et c'est aujourd'hui le seul obstacle réel.
 
-Le code du Membre 3 est branché sur ce fichier au lieu de garder ses propres chiffres.
+Le Membre 5 code alors `objective.py` et `gradient_descent.py` d'après ces dérivations, vérifie
+le gradient par différences finies, et valide le solveur sur le petit cas à deux conduites
+parallèles dont la solution se pose à la main.
 
-Le Membre 4 écrit ses démonstrations et les fait relire par deux personnes, ce qui débloque le
-jalon.
+Le Membre 5 complète `monte_carlo.py` et `run_scenarios.py`, puis lance les Expériences 1, 4, 3,
+2 et 5, dans cet ordre, et produit les figures et les tableaux.
 
-Le Membre 5 code le solveur, le valide sur un petit cas dont la solution se pose à la main, puis
-lance les six expériences.
+Le Membre 6 code la stratégie de référence et les métriques, construit la comparaison chiffrée,
+puis rédige et assemble le rapport.
 
-Le Membre 6 compare, rédige et assemble.
+Le rapport ne peut pas être finalisé avant que ces quatre étapes soient passées. Donner la main
+au Membre 6 aujourd'hui reviendrait à lui demander d'analyser des résultats qui n'existent pas,
+et de rédiger deux rubriques de la grille de notation qui pèsent 35 % à elles deux.
