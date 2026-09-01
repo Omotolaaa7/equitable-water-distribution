@@ -1,0 +1,1090 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{caption}
+
+\geometry{margin=2.5cm}
+\hypersetup{colorlinks=true, linkcolor=black, citecolor=black, urlcolor=black}
+
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\title{Fiche technique --- Contribution du Membre 5\\
+\large Monte-Carlo, implémentation et expérimentation}
+\author{Projet : distribution équitable de l'eau sous demande incertaine}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{quote}
+\small
+Ce document couvre exclusivement la contribution du Membre 5 (M5). Il ne
+reprend ni ne redérive les parties théoriques complètes de M1, M2, M3 ou M4 ;
+il n'en présente que ce qui est strictement nécessaire à la compréhension de
+l'implémentation de M5. Toute information absente des fichiers transmis est
+signalée explicitement par la mention \emph{« Information non disponible dans
+les fichiers fournis »} plutôt que supposée ou inventée. Ce document n'est pas
+le rapport final du projet.
+\end{quote}
+
+\tableofcontents
+
+% =====================================================================
+\section{Présentation de la contribution de M5}
+% =====================================================================
+
+M5 est responsable du volet « Monte-Carlo, implémentation et
+expérimentation » du projet. Concrètement, cette responsabilité couvre :
+
+\begin{itemize}
+  \item l'implémentation du simulateur Monte-Carlo de scénarios de demande
+  (\texttt{src/probability/monte\_carlo.py}) ;
+  \item l'implémentation de la fonction de coût pénalisée et de son gradient
+  (\texttt{src/optimization/objective.py}), à partir des dérivations
+  mathématiques fournies par M4 ;
+  \item l'implémentation du solveur de descente de gradient projetée
+  (\texttt{src/optimization/gradient\_descent.py}), également à partir des
+  dérivations de M4 ;
+  \item l'orchestration de la résolution du problème d'optimisation sur un
+  ensemble de scénarios (\texttt{src/simulation/run\_scenarios.py}) ;
+  \item la réalisation de plusieurs expériences visant à confronter les
+  résultats théoriques établis par M2 et M4 au comportement observé du code.
+\end{itemize}
+
+M5 implémente ; M5 ne dérive pas la théorie. Les formules utilisées dans
+\texttt{objective.py} et \texttt{gradient\_descent.py} proviennent d'un
+document rédigé par M4 (\emph{Aïchatou Traoré}),
+\texttt{docs/section\_optimisation\_membre4.pdf}, cité nommément dans les deux
+fichiers. Le rôle de M5 est de traduire ces dérivations en code correct,
+vérifié, et de produire les expériences qui les confrontent au comportement
+réel du système.
+
+Un point d'audit important est signalé dès cette section et repris en détail
+en section~15 : le fichier \texttt{exp6\_at\_risk\_districts.py}, bien que
+présent dans le périmètre nominal de M5 selon la numérotation des six
+expériences du projet, s'auto-attribue explicitement à M3 dans son propre
+en-tête et n'utilise aucun des quatre modules de M5. Il est documenté ici tel
+qu'il a été transmis, avec cette réserve clairement posée.
+
+% =====================================================================
+\section{Position de M5 dans l'architecture globale}
+% =====================================================================
+
+L'architecture du projet est organisée comme suit :
+
+\begin{verbatim}
+data/
+src/graph/          (M1, M2)
+src/probability/    (M3 ; monte_carlo.py appartient à M5)
+src/optimization/   (M5, à partir des dérivations de M4)
+src/simulation/      (M5)
+src/evaluation/      (hors périmètre de M5)
+experiments/         (scripts 3, 4, 5 attribués à M5 ; script 6 voir section 15)
+results/
+tests/
+report/
+\end{verbatim}
+
+Le tableau~\ref{tab:pipeline} récapitule les étapes du pipeline telles que
+mentionnées dans les en-têtes des fichiers fournis, avec le responsable
+associé et le fichier correspondant.
+
+\begin{longtable}{L{1.5cm}L{4.5cm}L{2.5cm}L{5cm}}
+\caption{Étapes du pipeline mentionnées dans les fichiers fournis.}
+\label{tab:pipeline}\\
+\toprule
+Étape & Description & Responsable & Fichier \\
+\midrule
+\endhead
+3 & Constante de Lipschitz / conditionnement (référencée, non fournie) & M2 & \texttt{src/graph/graph\_analysis.py} (non fourni) \\
+4 & Modèle de demande $D_i \sim \mathcal{N}(\mu_i,\sigma_i^2)$ & M3 & \texttt{demand\_model.py} \\
+5 & Génération de scénarios de demande & M5 (avec M3) & \texttt{monte\_carlo.py} \\
+6 & Formulation du problème et convexité & M4 & \texttt{objective.py} (implémentation M5) \\
+7 & Pénalisation de la contrainte d'égalité & M4 & \texttt{objective.py} (implémentation M5) \\
+8 & Gradient $\nabla J(q)$ & M4 & \texttt{objective.py} (implémentation M5) \\
+9 & Descente de gradient projetée & M5 (à partir de M4) & \texttt{gradient\_descent.py} \\
+10 & Résolution sur un ensemble de scénarios & M5 & \texttt{run\_scenarios.py} \\
+\bottomrule
+\end{longtable}
+
+% =====================================================================
+\section{Objectifs de l'implémentation}
+% =====================================================================
+
+D'après les en-têtes des fichiers fournis, l'implémentation de M5 poursuit
+trois objectifs explicites :
+
+\begin{enumerate}
+  \item Transformer le modèle probabiliste de M3 en scénarios de demande
+  exploitables, avec une mesure explicite de la précision statistique des
+  quantités estimées (voir le docstring de \texttt{monte\_carlo.py}, qui
+  insiste sur ce point : \emph{« Ce qui est noté, ce n'est pas de savoir
+  tirer des nombres au hasard, c'est de savoir avec quelle précision on
+  connaît les statistiques qu'on en déduit »}).
+  \item Implémenter fidèlement, sans simplification algébrique
+  intermédiaire, les formules dérivées par M4 pour le coût pénalisé, son
+  gradient et le solveur, de façon à préserver la correspondance entre le
+  rapport et le code (exigence citée dans \texttt{gradient.py}\footnote{Le
+  fichier source la nomme « Contrainte méthodologique 1 ».}).
+  \item Confronter empiriquement deux résultats théoriques du projet au
+  comportement observé du code : la borne de convergence $\eta < 2/L$
+  (Expérience 4) et le lien entre maillage du réseau et conditionnement
+  (Expérience 5), ainsi qu'analyser la sensibilité du problème au paramètre
+  de pénalisation $\mu$ (Expérience 3).
+\end{enumerate}
+
+% =====================================================================
+\section{Interfaces avec les autres membres}
+% =====================================================================
+
+\subsection{Dépendances vis-à-vis de M3}
+
+M5 dépend du module \texttt{src/probability/demand\_model.py}, rédigé par M3,
+via les fonctions suivantes, effectivement importées dans
+\texttt{monte\_carlo.py} :
+
+\begin{itemize}
+  \item \texttt{parametres\_demande(reseau)} $\to (\mu, \sigma)$ : vecteurs
+  des moyennes et écarts-types de demande par quartier.
+  \item \texttt{matrice\_covariance(reseau)} $\to \Sigma$ : matrice de
+  covariance des demandes, construite comme $\Sigma_{ij} = \rho_{ij}
+  \sigma_i \sigma_j$ à partir des corrélations déclarées dans
+  \texttt{network\_config.json}. Cette fonction lève une exception si
+  $\Sigma$ n'est pas définie positive.
+  \item \texttt{echantillonner(mu, covariance, n\_tirages, generateur)}
+  $\to$ tableau $(n\_tirages, p)$ : tirages gaussiens multivariés, tronqués à
+  zéro par en bas (\texttt{np.clip(..., a\_min=0.0, ...)}) pour préserver la
+  positivité physique des débits.
+  \item \texttt{estimateur\_moyenne}, \texttt{estimateur\_variance},
+  \texttt{correlations\_empiriques} : importées par \texttt{monte\_carlo.py}
+  mais non appelées dans le corps de ce fichier tel que fourni. Leur usage
+  effectif par M5 n'apparaît pas dans les fichiers transmis.
+\end{itemize}
+
+M5 ne dépend pas de \texttt{intervalle\_confiance\_moyenne} ni de
+\texttt{quartiers\_atypiques}, bien que ces deux fonctions existent dans
+\texttt{demand\_model.py} et semblent conçues pour le type d'analyse que
+l'Expérience 6 revendique (voir section~15).
+
+Le contrat d'interface entre \texttt{demand\_model.py} et
+\texttt{monte\_carlo.py} est cohérent : les six fonctions importées existent
+bien, avec les signatures attendues.
+
+\subsection{Dépendances vis-à-vis de M4}
+
+M5 dépend d'un document théorique de M4,
+\texttt{docs/section\_optimisation\_membre4.pdf} (non fourni), pour trois
+résultats repris littéralement dans le code :
+
+\begin{itemize}
+  \item la formulation pénalisée $J(q) = q^\top C q + \mu \lVert Aq - b
+  \rVert^2$ (section~7 du docstring de \texttt{objective.py}) ;
+  \item le gradient $\nabla J(q) = 2Cq + 2\mu A^\top (Aq - b)$ (section~8) ;
+  \item la borne de convergence $\eta < 2/L$ avec $L = \lambda_{\max}(2C +
+  2\mu A^\top A)$, ainsi que le choix pratique usuel $\eta = 1/L$.
+\end{itemize}
+
+Un écart assumé avec M4 est explicitement documenté dans le code et doit
+être arbitré par le groupe : le document de M4 (section~5.3, selon le
+docstring de \texttt{gradient\_descent.py}) propose trois critères d'arrêt et
+retient par défaut la norme du gradient $\lVert \nabla J \rVert \to 0$. M5
+argumente que ce critère n'est pas adapté à un problème projeté : une
+composante dont le débit optimal vaut zéro conserve un gradient non nul, que
+la projection annule à chaque itération, ce qui empêcherait la boucle de
+s'arrêter avant \texttt{max\_iterations}. M5 retient donc par défaut le
+critère de déplacement $\lVert q_{k+1} - q_k \rVert < \text{tolérance}$, tout
+en rendant les trois critères de M4 disponibles via le paramètre
+\texttt{critere} de \texttt{descente\_projetee}. Ce point est signalé dans le
+code comme devant être arbitré par M4 pour harmoniser le rapport final.
+
+\subsection{Interfaces avec M6}
+
+Voir la section~15, dédiée spécifiquement à cette interface.
+
+% =====================================================================
+\section{Architecture logicielle de ma partie}
+% =====================================================================
+
+Quatre modules constituent l'implémentation de M5, avec les dépendances
+suivantes entre eux (flèche = « est utilisé par ») :
+
+\begin{verbatim}
+demand_model.py (M3)
+      |
+      v
+monte_carlo.py --------------------> [non consommé par les scripts fournis]
+
+objective.py --------> gradient_descent.py --------> run_scenarios.py
+      ^                       ^                              |
+      |                       |                              v
+   exp3, exp4, exp5 appellent directement            [non consommé par
+   descente_projetee (donc gradient_descent.py         exp3, exp4, exp5]
+   et objective.py), sans passer par run_scenarios.py
+\end{verbatim}
+
+Ce schéma reflète un constat d'audit à porter à la connaissance du groupe :
+\textbf{aucun des scripts d'expérience fournis (3, 4, 5) n'appelle
+\texttt{run\_scenarios.py} ni \texttt{monte\_carlo.py}.} Les trois
+expériences disponibles résolvent un problème déterministe unique, à la
+demande moyenne $\mu$ obtenue via \texttt{parametres\_demande}, et non sur un
+ensemble de scénarios Monte-Carlo. Le module \texttt{monte\_carlo.py} et les
+fonctions batch de \texttt{run\_scenarios.py} (\texttt{resoudre\_tous},
+\texttt{descente\_projetee\_par\_lot}, \texttt{scenarios\_de\_stress}) sont
+implémentés mais non démontrés empiriquement par les fichiers transmis. Ce
+point est développé en section~14.
+
+% =====================================================================
+\section{Description détaillée des modules}
+% =====================================================================
+
+\subsection{\texttt{monte\_carlo.py}}
+
+\begin{description}[style=nextline]
+  \item[Rôle] Transformer le modèle probabiliste de demande de M3 en
+  scénarios exploitables et en statistiques agrégées.
+  \item[Objectif] Ne pas se limiter au tirage de nombres aléatoires : fournir
+  une mesure explicite de la précision des statistiques déduites (erreur
+  standard, quantiles).
+  \item[Entrées] Un objet \texttt{reseau} (ou dictionnaire de configuration),
+  un nombre de tirages, une graine optionnelle.
+  \item[Sorties] Un tableau de scénarios $(n\_tirages, |\text{quartiers}|)$,
+  ou un objet \texttt{StatistiquesMonteCarlo} (moyenne, variance, erreur
+  standard, quantiles, nombre de tirages).
+  \item[Principales fonctions] \texttt{generer\_scenarios},
+  \texttt{agreger}, \texttt{erreur\_estimation},
+  \texttt{convergence\_par\_taille}.
+  \item[Algorithmes] Tirage gaussien multivarié (délégué à
+  \texttt{demand\_model.echantillonner}) ; calcul de moyenne, variance
+  corrigée (\texttt{ddof=1}) et quantiles empiriques via \texttt{numpy}.
+  \item[Dépendances] \texttt{src.probability.demand\_model} (M3).
+  \item[Hypothèses] La graine par défaut (\texttt{GRAINE\_PAR\_DEFAUT = 42})
+  est fixée au niveau du module plutôt qu'à chaque appel, pour qu'un oubli de
+  graine produise un résultat reproductible plutôt qu'un résultat différent à
+  chaque exécution.
+  \item[Contrôles] \texttt{agreger} lève une exception si moins de deux
+  valeurs sont fournies (variance corrigée indéfinie). \texttt{
+  convergence\_par\_taille} lève une exception si une taille demandée dépasse
+  la population disponible, plutôt que de réduire silencieusement la taille.
+  \item[Fichiers qui l'utilisent] Aucun des fichiers fournis (\texttt{exp3},
+  \texttt{exp4}, \texttt{exp5}, \texttt{exp6}, \texttt{run\_scenarios.py})
+  n'importe ce module. Son docstring affirme qu'il alimente
+  \texttt{run\_scenarios} et les Expériences 2 et 6 ; cette affirmation n'est
+  vérifiée par aucun des fichiers transmis (voir section~15).
+\end{description}
+
+\subsection{\texttt{objective.py}}
+
+\begin{description}[style=nextline]
+  \item[Rôle] Implémenter la fonction de coût pénalisée $J(q)$, son
+  gradient, sa hessienne et un contrôle de correction du gradient.
+  \item[Objectif] Traduire fidèlement, sans simplification algébrique, les
+  formules dérivées par M4.
+  \item[Entrées] $q \in \mathbb{R}^{|E|}$ (débits), $A$ (matrice
+  d'incidence, forme $(|V|,|E|)$), $b \in \mathbb{R}^{|V|}$ (second membre de
+  conservation), $c \in \mathbb{R}^{|E|}$ (coûts par conduite), $\mu > 0$
+  (paramètre de pénalisation).
+  \item[Sorties] Un scalaire ($J(q)$, coût technique, norme de violation) ou
+  un vecteur/matrice (gradient, hessienne).
+  \item[Principales fonctions] \texttt{cout}, \texttt{violation\_contrainte},
+  \texttt{objectif}, \texttt{gradient}, \texttt{hessienne},
+  \texttt{verifier\_gradient}.
+  \item[Algorithmes] Calcul direct des formes quadratiques ; différences
+  finies centrées d'ordre $O(h^2)$ pour la vérification numérique du
+  gradient.
+  \item[Dépendances] Aucune dépendance à un autre module du projet ; utilise
+  uniquement \texttt{numpy}.
+  \item[Hypothèses] Les coûts $c_e$ sont strictement positifs (condition de
+  définie-positivité de $C = \mathrm{diag}(c_e)$, nécessaire à la stricte
+  convexité de $J$).
+  \item[Contrôles] \texttt{verifier\_gradient} compare le gradient
+  analytique aux différences finies centrées ; un écart relatif maximal de
+  l'ordre de $10^{-6}$ ou moins indique une dérivation correcte. Ce contrôle
+  ne remplace pas la dérivation manuscrite exigée par le sujet, il la
+  vérifie.
+  \item[Fichiers qui l'utilisent] \texttt{gradient\_descent.py} (import
+  direct de \texttt{gradient}, \texttt{hessienne}, \texttt{objectif},
+  \texttt{violation\_contrainte}) ; \texttt{run\_scenarios.py} (\texttt{cout},
+  \texttt{violation\_contrainte}) ; \texttt{exp3\_sensitivity\_mu.py}
+  (\texttt{cout}, \texttt{hessienne}, \texttt{violation\_contrainte}) ;
+  \texttt{exp5\_conditioning\_vs\_mesh.py} (\texttt{hessienne}).
+\end{description}
+
+\textbf{Formulation mathématique implémentée} (dérivée par M4, section 6 à 8
+de son document) :
+
+\begin{align}
+  \text{Problème d'origine :} \quad & q^* = \arg\min_q \sum_{e \in E} c_e
+  q_e^2 \quad \text{sous } Aq = b,\ q \geq 0 \label{eq:probleme} \\
+  \text{Pénalisation :} \quad & J(q) = q^\top C q + \mu \lVert Aq - b
+  \rVert^2 \label{eq:objectif} \\
+  \text{Gradient :} \quad & \nabla J(q) = 2Cq + 2\mu A^\top(Aq - b)
+  \label{eq:gradient}
+\end{align}
+
+Le module ne redérive pas la démonstration de convexité de M4 : il en
+implémente la conséquence directe (voir 6.3 pour la hessienne constante $H =
+2C + 2\mu A^\top A$).
+
+\subsection{\texttt{gradient\_descent.py}}
+
+\begin{description}[style=nextline]
+  \item[Rôle] Résoudre le problème pénalisé~\eqref{eq:objectif} par descente
+  de gradient projetée sur l'orthant positif.
+  \item[Objectif] Fournir un solveur robuste, avec traçabilité de la
+  convergence et garde-fou contre la divergence numérique.
+  \item[Entrées] $A$, $b$, $c$, $\mu$, pas $\eta$ (optionnel), point de
+  départ $q_0$ (optionnel), tolérance, nombre maximal d'itérations, critère
+  d'arrêt (\texttt{"deplacement"}, \texttt{"gradient"} ou \texttt{"cout"}).
+  \item[Sorties] Le couple $(q^*, \text{historique})$, où
+  \texttt{HistoriqueConvergence} trace les valeurs de $J(q_k)$, les normes de
+  gradient, les violations de contrainte, le nombre d'itérations, le
+  statut de convergence et le motif d'arrêt.
+  \item[Principales fonctions] \texttt{projeter\_orthant\_positif},
+  \texttt{pas\_maximal\_theorique}, \texttt{descente\_projetee}.
+  \item[Algorithmes] Voir pseudo-code ci-dessous. Projection euclidienne sur
+  $\{q \geq 0\}$ par $P(x) = \max(x, 0)$, appliquée à \emph{chaque}
+  itération (et non une seule fois à la fin, erreur explicitement signalée
+  comme un autre algorithme qui ne converge pas vers le même point).
+  \item[Dépendances] \texttt{objective.py}.
+  \item[Hypothèses] Si $\eta$ n'est pas fourni, il est fixé à la moitié de la
+  borne théorique $2/L$, soit $\eta = 1/L$, et ce choix doit être signalé
+  dans le rapport plutôt que présenté comme un réglage manuel. Si $q_0$
+  n'est pas fourni, le point de départ est le vecteur nul, admissible pour
+  $q \geq 0$.
+  \item[Contrôles] Un seuil de divergence (\texttt{SEUIL\_DIVERGENCE = 1e12})
+  arrête proprement la boucle si le déplacement devient non fini ou
+  excessif, plutôt que de laisser la sortie se remplir de \texttt{inf}/
+  \texttt{nan}. Ce seuil est un garde-fou de mise en \oe uvre introduit par
+  M5, non issu du document de M4.
+  \item[Fichiers qui l'utilisent] \texttt{run\_scenarios.py}
+  (\texttt{descente\_projetee}, \texttt{pas\_maximal\_theorique}) ;
+  \texttt{exp3\_sensitivity\_mu.py}, \texttt{exp4\_convergence\_check.py},
+  \texttt{exp5\_conditioning\_vs\_mesh.py} (\texttt{descente\_projetee},
+  \texttt{pas\_maximal\_theorique}).
+\end{description}
+
+\textbf{Pseudo-code} (tel que documenté dans le module) :
+
+\begin{quote}
+\textbf{Entrées} : $A, b, c, \mu, \eta, q_0$, tolérance, $k_{\max}$\\
+\textbf{Pour} $k = 0, 1, 2, \dots$ :
+\begin{itemize}
+  \item $g_k \leftarrow \nabla J(q_k) = 2Cq_k + 2\mu A^\top(Aq_k - b)$
+  \item $q_{k+1} \leftarrow P(q_k - \eta g_k)$, avec $P(x) = \max(x, 0)$
+  \item arrêt si $\lVert q_{k+1} - q_k \rVert < \text{tolérance}$ ou $k =
+  k_{\max}$
+\end{itemize}
+\textbf{Sortie} : $q_k$
+\end{quote}
+
+Deux justifications explicitement portées par le code :
+
+\begin{enumerate}
+  \item $\max(\cdot, 0)$ est la projection euclidienne sur $\{q \geq 0\}$
+  car le problème $\min_{y \geq 0} \lVert y - x \rVert^2$ se sépare
+  composante par composante ; cette séparabilité ne tiendrait pas sur un
+  ensemble couplant les composantes (par exemple des contraintes de
+  capacité $q_e \leq \text{cap}_e$).
+  \item $\eta < 2/L$ garantit la convergence, avec $L = \lambda_{\max}(2C +
+  2\mu A^\top A)$ : résultat classique de la descente de gradient projetée
+  sur fonction convexe à gradient $L$-lipschitzien. Cette borne théorique
+  est confrontée à l'expérience dans l'Expérience 4 (section~10.2).
+\end{enumerate}
+
+\subsection{\texttt{run\_scenarios.py}}
+
+\begin{description}[style=nextline]
+  \item[Rôle] Résoudre le problème d'optimisation sur un ensemble de
+  scénarios de demande, et non uniquement sur la demande moyenne.
+  \item[Objectif] Industrialiser le test de robustesse de $q^*$ face à des
+  situations variées, exigence explicite du sujet.
+  \item[Entrées] Un \texttt{reseau}, une matrice d'incidence $A$, un ou
+  plusieurs vecteurs de demande, $\mu$, options du solveur.
+  \item[Sorties] Un \texttt{ResultatScenario} (indice, demandes, $q^*$, coût
+  technique, violation, nombre d'itérations, convergence) ou une liste de
+  ces objets.
+  \item[Principales fonctions] \texttt{resoudre\_scenario},
+  \texttt{resoudre\_tous}, \texttt{descente\_projetee\_par\_lot},
+  \texttt{scenarios\_de\_stress}.
+  \item[Algorithmes] \texttt{descente\_projetee\_par\_lot} réplique
+  exactement l'algorithme de \texttt{descente\_projetee} (même pas, même
+  règle de mise à jour, même projection à chaque itération, même critère de
+  déplacement), mais fait avancer $N$ scénarios simultanément dans des
+  tableaux de forme $(N, |E|)$ au lieu d'une boucle Python scénario par
+  scénario. Le docstring justifie ce choix par un gain de performance
+  (environ 8000 itérations nécessaires à $\mu = 100$ quel que soit le nombre
+  de scénarios ; en boucle, cela représenterait de l'ordre d'un quart
+  d'heure pour 1000 scénarios).
+  \item[Dépendances] \texttt{src.graph.build\_graph}
+  (\texttt{construire\_second\_membre}, \texttt{vecteur\_couts} --- M1/M2,
+  non fournis), \texttt{src.optimization.gradient\_descent},
+  \texttt{src.optimization.objective}, \texttt{src.probability.demand\_model}
+  (\texttt{parametres\_demande}).
+  \item[Hypothèses] Un scénario ayant atteint son seuil de convergence
+  continue d'être mis à jour jusqu'à la fin de la boucle par lot ; le
+  docstring affirme que cela ne le déplace pas, car il est au point fixe de
+  l'itération projetée.
+  \item[Contrôles] Le docstring mentionne un test
+  \texttt{test\_le\_lot\_donne\_le\_meme\_resultat\_que\_la\_boucle}
+  comparant les deux implémentations (boucle et lot) sur le réseau réel.
+  \textbf{Ce fichier de test n'a pas été transmis} ; son existence et son
+  contenu réel restent à vérifier. Information non disponible dans les
+  fichiers fournis.
+  \item[Fichiers qui l'utilisent] Aucun des scripts d'expérience fournis
+  (\texttt{exp3}, \texttt{exp4}, \texttt{exp5}, \texttt{exp6}) n'importe ce
+  module.
+\end{description}
+
+\subsection{Scripts expérimentaux}
+
+Voir section~10 pour le détail complet. Le tableau~\ref{tab:experiences}
+résume le statut de chaque script fourni.
+
+\begin{longtable}{L{2.2cm}L{2.5cm}L{4.5cm}L{4cm}}
+\caption{Statut des scripts expérimentaux fournis.}
+\label{tab:experiences}\\
+\toprule
+Script & Responsable déclaré & Modules M5 utilisés & Remarque \\
+\midrule
+\endhead
+\texttt{exp3\_sensitivity\_mu.py} & M5 (interprétation M4) & \texttt{objective.py}, \texttt{gradient\_descent.py} & Demande moyenne uniquement, pas de Monte-Carlo \\
+\texttt{exp4\_convergence\_check.py} & M5 (interprétation M4) & \texttt{objective.py} (via \texttt{gradient\_descent.py}), \texttt{gradient\_descent.py} & idem \\
+\texttt{exp5\_conditioning\_vs\_mesh.py} & M5 (interprétation M2) & \texttt{objective.py}, \texttt{gradient\_descent.py} & idem \\
+\texttt{exp6\_at\_risk\_districts.py} & M3, selon l'en-tête du fichier lui-même & Aucun & Voir section~15 \\
+\bottomrule
+\end{longtable}
+
+% =====================================================================
+\section{Implémentation de la simulation Monte-Carlo}
+% =====================================================================
+
+Cette section documente le module \texttt{monte\_carlo.py} tel qu'implémenté.
+Elle doit être lue avec la réserve posée en section~6.1 : aucun des scripts
+fournis n'exerce ce module.
+
+\begin{description}[style=nextline]
+  \item[Génération des scénarios] \texttt{generer\_scenarios(reseau,
+  n\_tirages, graine=None)} récupère $(\mu, \_)$ via
+  \texttt{parametres\_demande}, la matrice de covariance $\Sigma$ via
+  \texttt{matrice\_covariance}, instancie un générateur \texttt{numpy}
+  (graine 42 par défaut) et délègue le tirage à
+  \texttt{demand\_model.echantillonner}.
+  \item[Utilisation du modèle probabiliste] Le modèle utilisé est
+  entièrement celui de M3 : $D \sim \mathcal{N}(\mu, \Sigma)$, tronqué à zéro
+  par en bas après tirage.
+  \item[Nombre de scénarios] Non fixé dans le code de M5 : c'est un
+  paramètre (\texttt{n\_tirages}) laissé à l'appelant. Aucun des fichiers
+  fournis n'appelle \texttt{generer\_scenarios} avec une valeur concrète.
+  Information non disponible dans les fichiers fournis quant au nombre de
+  scénarios effectivement retenu pour la suite du projet.
+  \item[Structure d'un scénario] Une ligne d'un tableau $(n\_tirages,
+  |\text{quartiers}|)$, chaque colonne correspondant à un quartier, dans
+  l'ordre retourné par \texttt{demand\_model}.
+  \item[Transmission au solveur] Non exercée dans les fichiers fournis :
+  \texttt{run\_scenarios.resoudre\_tous} attend un tableau
+  \texttt{scenarios} \emph{issu de} \texttt{generer\_scenarios} selon son
+  docstring, mais aucun appel effectif reliant les deux modules n'apparaît
+  dans le code transmis.
+  \item[Agrégation des résultats] \texttt{agreger(valeurs, quantiles=(0.05,
+  0.25, 0.5, 0.75, 0.95))} calcule moyenne, variance corrigée (\texttt{ddof=1}),
+  erreur standard $\hat{\sigma}/\sqrt{N}$ et les quantiles demandés.
+  \item[Statistiques calculées] Moyenne, variance, erreur standard,
+  quantiles aux niveaux 0,05/0,25/0,5/0,75/0,95 par défaut.
+  \item[Intervalles de confiance] \textbf{Non implémentés dans
+  \texttt{monte\_carlo.py}.} Le module calcule une erreur standard, pas un
+  intervalle de confiance au sens statistique (borne de Student ou
+  gaussienne). La fonction \texttt{intervalle\_confiance\_moyenne}, qui
+  calcule un IC de Student à $(n-1)$ degrés de liberté, existe dans
+  \texttt{demand\_model.py} (M3) mais n'est pas importée par
+  \texttt{monte\_carlo.py}.
+\end{description}
+
+La formule d'erreur standard implémentée,
+\begin{equation}
+  \text{erreur\_estimation}(\hat{\sigma}, N) = \frac{\hat{\sigma}}{\sqrt{N}},
+\end{equation}
+est qualifiée dans le code de « volontairement triviale et isolée », le
+docstring précisant qu'elle est destinée à être confrontée à la décroissance
+mesurée quand $N$ augmente par l'Expérience 2. \textbf{Cette confrontation
+n'apparaît dans aucun des fichiers fournis pour l'Expérience 2}, qui dépend
+du travail de M6 selon les informations transmises initialement. Une
+confrontation empirique de la décroissance en $1/\sqrt{N}$ existe bien dans
+les fichiers fournis, mais dans \texttt{exp6\_at\_risk\_districts.py}
+(Figure~3, attribuée à M3), pas dans une Expérience 2 attribuée à M5 --- voir
+section~15.
+
+\texttt{convergence\_par\_taille(valeurs, tailles=(100, 1000, 10000))}
+recalcule les statistiques sur des \emph{préfixes croissants} de la même
+population de tirages (et non sur des tirages indépendants à chaque taille),
+choix motivé dans le code par la volonté d'observer une même expérience
+s'affiner plutôt que de comparer trois expériences différentes.
+
+% =====================================================================
+\section{Implémentation du solveur}
+% =====================================================================
+
+\begin{description}[style=nextline]
+  \item[Fonction objectif] $J(q) = q^\top C q + \mu \lVert Aq - b
+  \rVert^2$, avec $C = \mathrm{diag}(c_e)$ (équation~\eqref{eq:objectif}).
+  \item[Gradient] $\nabla J(q) = 2Cq + 2\mu A^\top(Aq - b)$
+  (équation~\eqref{eq:gradient}), implémenté littéralement d'après la
+  dérivation de M4, sans réécriture algébrique intermédiaire. Une note de
+  performance sans effet sur le résultat est appliquée : le produit est
+  calculé comme $A^\top(Aq - b)$ (deux produits matrice-vecteur) plutôt que
+  $(A^\top A)q - A^\top b$ (qui construirait une matrice $|E| \times |E|$ à
+  chaque appel).
+  \item[Pénalisation] Le paramètre $\mu$ contrôle le compromis entre respect
+  de la conservation des flux et coût technique. La solution pénalisée ne
+  satisfait $Aq = b$ qu'à la limite $\mu \to \infty$ ; le résidu $\lVert Aq^*
+  - b \rVert$ est une quantité à mesurer et non à supposer nulle.
+  \item[Descente de gradient] Voir section~6.3 pour le pseudo-code complet.
+  \item[Projection] Projection euclidienne sur $\{q \geq 0\}$ à chaque
+  itération, $P(x) = \max(x, 0)$.
+  \item[Critère d'arrêt] Par défaut, critère de déplacement $\lVert q_{k+1}
+  - q_k \rVert < \text{tolérance}$ (choix de M5, motivé et documenté en
+  section~4.2). Les critères de norme de gradient et de variation de coût
+  sont également disponibles via le paramètre \texttt{critere}.
+  \item[Gestion des paramètres] $\eta$ par défaut : $\tfrac{1}{2} \times
+  \tfrac{2}{L}= \tfrac{1}{L}$. $q_0$ par défaut : vecteur nul. Tolérance par
+  défaut : $10^{-8}$. \texttt{max\_iterations} par défaut : $10\,000$ pour
+  \texttt{descente\_projetee}, $100\,000$ pour
+  \texttt{descente\_projetee\_par\_lot}.
+  \item[Suivi de la convergence] \texttt{HistoriqueConvergence} enregistre,
+  à chaque itération, la valeur de $J(q_k)$, la norme du gradient et la
+  violation de contrainte, pour éviter d'avoir à relancer l'optimisation
+  pour tracer une courbe a posteriori.
+  \item[Résultats retournés] Le couple $(q^*, \text{historique})$, avec dans
+  l'historique le nombre d'itérations effectuées, un booléen de convergence
+  et le motif d'arrêt (texte libre : critère atteint, divergence détectée,
+  ou nombre maximal d'itérations atteint).
+\end{description}
+
+Un garde-fou de divergence (\texttt{SEUIL\_DIVERGENCE = 1e12}) interrompt la
+boucle proprement si le déplacement devient non fini ou dépasse ce seuil ---
+utile en particulier pour l'Expérience 4, qui dépasse volontairement la borne
+théorique $2/L$.
+
+% =====================================================================
+\section{Orchestration des scénarios}
+% =====================================================================
+
+Le pipeline décrit dans \texttt{run\_scenarios.py} est le suivant :
+
+\begin{center}
+demande simulée $\to$ construction du second membre $b$ (via
+\texttt{construire\_second\_membre}, M1/M2) $\to$ optimisation
+(\texttt{descente\_projetee} ou \texttt{descente\_projetee\_par\_lot}) $\to$
+solution $q^*$ $\to$ collecte des résultats (\texttt{ResultatScenario}) $\to$
+[agrégation --- non implémentée dans ce module] $\to$ analyse expérimentale.
+\end{center}
+
+Deux réserves à porter à la connaissance du groupe :
+
+\begin{enumerate}
+  \item \textbf{L'étape d'agrégation n'est pas câblée.} Ni
+  \texttt{resoudre\_scenario} ni \texttt{resoudre\_tous} n'appellent
+  \texttt{monte\_carlo.agreger} sur la liste de résultats produite. La
+  capacité d'agrégation statistique existe (section~7) mais n'est pas
+  reliée à l'orchestration des scénarios dans les fichiers fournis.
+  \item \textbf{Ce module n'est exercé par aucune expérience fournie.} Les
+  fonctions \texttt{resoudre\_scenario}, \texttt{resoudre\_tous},
+  \texttt{descente\_projetee\_par\_lot} et \texttt{scenarios\_de\_stress}
+  sont implémentées mais non appelées par \texttt{exp3}, \texttt{exp4},
+  \texttt{exp5} ou \texttt{exp6}. Elles sont vraisemblablement destinées aux
+  Expériences 1 et 2, dépendantes du travail de M6 selon les informations
+  transmises.
+\end{enumerate}
+
+\texttt{scenarios\_de\_stress(reseau, quantile=0.95)} construit un scénario
+de demande \emph{extrême marginal} : chaque quartier est individuellement
+poussé à son propre quantile ($\mu + z_{0.95} \sigma$, composante par
+composante), ce qui diffère du quantile de la demande totale du réseau
+(généralement plus faible, car les écarts individuels ne se cumulent jamais
+parfaitement). Le code signale explicitement que le rapport final doit
+préciser laquelle des deux lectures est retenue --- ce choix n'est pas encore
+tranché dans les fichiers fournis.
+
+% =====================================================================
+\section{Description des expériences}
+% =====================================================================
+
+\subsection{Expérience 3 --- Sensibilité au paramètre de pénalisation
+$\mu$}
+
+\begin{description}[style=nextline]
+  \item[Objectif] Mesurer le compromis porté par $\mu$ entre respect de la
+  contrainte de conservation et vitesse de convergence.
+  \item[Question scientifique] Comment le choix de $\mu$ affecte-t-il
+  simultanément la violation résiduelle et le nombre d'itérations
+  nécessaires à la convergence ?
+  \item[Paramètres contrôlés] $\mu \in \{1, 10, 100, 1000\}$ ; tolérance
+  $10^{-8}$ ; \texttt{max\_iterations} $= 200\,000$.
+  \item[Méthode] Pour chaque $\mu$, résoudre le problème pénalisé à la
+  demande moyenne avec \texttt{descente\_projetee}, en recalculant $\eta =
+  \tfrac{1}{2} \times \tfrac{2}{L}$ à chaque valeur de $\mu$ (protocole
+  explicitement retenu : le nombre d'itérations mesuré mélange donc l'effet
+  du durcissement du problème et celui du rétrécissement du pas, ce qui est
+  volontaire car les deux effets partagent la même origine algébrique, la
+  matrice $2C + 2\mu A^\top A$).
+  \item[Protocole expérimental] Réseau synthétique, demande moyenne
+  uniquement (pas de tirage Monte-Carlo).
+  \item[Métriques] Valeur propre maximale $L$, conditionnement de $H$, pas
+  maximal théorique $2/L$, pas utilisé, nombre d'itérations, convergence,
+  coût technique, violation résiduelle.
+  \item[Sorties produites] Table CSV \texttt{results/tables/
+  exp3\_sensibilite\_mu.csv} (chemin obtenu via \texttt{\_bootstrap.TABLEAUX},
+  module non fourni).
+  \item[Figures] \texttt{results/figures/exp3\_sensibilite\_mu.png}, deux
+  panneaux : à gauche, $J(q_k)$ en échelle log-log en fonction de $k$, une
+  courbe par $\mu$ ; à droite, violation résiduelle et nombre d'itérations en
+  fonction de $\mu$, en échelle log-log.
+  \item[Interprétation attendue] La violation résiduelle décroît quand $\mu$
+  augmente, mais la convergence ralentit --- lien direct avec la dérivation
+  de l'Étape~7 : augmenter $\mu$ resserre la contrainte d'égalité mais
+  alourdit $\lambda_{\max}(H)$, dégrade donc $\kappa(H)$, impose donc un pas
+  plus petit via $\eta < 2/L$, ralentit donc la convergence.
+  \item[Lien avec la théorie] Satisfait l'exigence d'analyse de sensibilité
+  d'au moins un hyperparamètre (« Contrainte méthodologique 3, exigence
+  (v) », selon le docstring du script).
+  \item[Limites] Les valeurs numériques réelles (colonnes du CSV, valeurs de
+  $L$, de $\kappa(H)$, nombre d'itérations effectif) ne figurent pas dans le
+  code source et n'ont pas été transmises. Information non disponible dans
+  les fichiers fournis.
+\end{description}
+
+\subsection{Expérience 4 --- Vérification de la borne de convergence}
+
+\begin{description}[style=nextline]
+  \item[Objectif] Confronter la borne théorique $\eta < 2/L$ au comportement
+  observé.
+  \item[Question scientifique] La convergence est-elle stable sous la borne
+  et instable au-delà, comme le prédit la théorie ?
+  \item[Paramètres contrôlés] $\mu = 100$ ; facteurs de la borne $\eta/(2/L)
+  \in \{0{,}1;\ 0{,}5;\ 0{,}9;\ 1{,}1;\ 1{,}5\}$ ; \texttt{max\_iterations} $=
+  60\,000$.
+  \item[Méthode] Pour chaque facteur, calculer $\eta = \text{facteur}
+  \times (2/L)$ et lancer \texttt{descente\_projetee}, en suivant $J(q_k)$ et
+  la norme du gradient au fil des itérations.
+  \item[Protocole expérimental] Réseau synthétique, demande moyenne, cinq
+  valeurs de $\eta$ encadrant franchement le seuil théorique (trois en
+  dessous, deux au-dessus).
+  \item[Métriques] $J(q_k)$ et $\lVert \nabla J(q_k) \rVert$ en fonction de
+  $k$ ; remontée maximale de $J$ entre deux itérations consécutives ;
+  convergence atteinte ou non ; motif d'arrêt.
+  \item[Sorties produites] Table CSV \texttt{results/tables/
+  exp4\_convergence.csv}.
+  \item[Figures] \texttt{results/figures/exp4\_convergence.png} : $J(q_k)$
+  en échelle logarithmique, une courbe par facteur (trait plein sous le
+  seuil, tireté au-dessus), limitée aux 2000 premières itérations affichées.
+  \item[Interprétation attendue] Convergence stable pour les facteurs
+  inférieurs à 1, oscillation ou divergence au-delà --- confirmée ou non par
+  les données numériques réelles, qui n'ont pas été transmises.
+  \item[Lien avec la théorie] Confronte le résultat classique de convergence
+  de la descente de gradient projetée sur fonction convexe à gradient
+  $L$-lipschitzien, et la constante de Lipschitz calculée à partir du $L$
+  fourni par M2 (Étape~3).
+  \item[Limites] L'erreur à ne pas commettre, explicitement signalée dans le
+  docstring, est de présenter une courbe qui descend comme preuve de
+  convergence : ce que l'expérience démontre est le lien entre la constante
+  de Lipschitz et le comportement de part et d'autre du seuil, pas le simple
+  fait que $J$ décroisse. Les valeurs numériques réelles (borne calculée,
+  nombre d'itérations par facteur) n'ont pas été transmises. Information non
+  disponible dans les fichiers fournis.
+\end{description}
+
+\subsection{Expérience 5 --- Maillage du réseau et conditionnement}
+
+\begin{description}[style=nextline]
+  \item[Objectif] Vérifier empiriquement le lien entre structure du graphe
+  et stabilité numérique établi à l'Étape~3 (M2).
+  \item[Question scientifique] Un réseau mal maillé se traduit-il par un
+  conditionnement plus élevé et davantage d'itérations nécessaires à la
+  convergence ?
+  \item[Paramètres contrôlés] Densités de maillage $\{0;\ 0{,}25;\ 0{,}5;\
+  0{,}75;\ 1\}$ ; $\mu = 100$ ; tolérance $10^{-8}$ ; \texttt{max\_iterations}
+  $= 200\,000$.
+  \item[Méthode] Pour chaque variante de maillage (obtenue via
+  \texttt{generer\_variantes\_de\_maillage}, M1/M2, non fourni), calculer
+  $\kappa(A)$ et $\kappa(H) = \kappa(2C + 2\mu A^\top A)$, résoudre avec un
+  pas commun à toutes les variantes (protocole retenu explicitement : $\eta$
+  fixé à la moitié de la plus petite borne théorique rencontrée parmi toutes
+  les variantes, pour ne pas mélanger l'effet du conditionnement avec celui
+  d'un pas recalculé à chaque variante).
+  \item[Protocole expérimental] Réseaux synthétiques à densités de connexion
+  croissantes, tous vérifiés connexes.
+  \item[Métriques] Nombre de conduites, connexité, rang de $A$, dimension du
+  noyau (nombre de boucles), $\kappa(A)$, $\kappa(H)$, nombre d'itérations,
+  convergence.
+  \item[Sorties produites] Table CSV \texttt{results/tables/
+  exp5\_maillage\_conditionnement.csv}.
+  \item[Figures] \texttt{results/figures/exp5\_maillage\_conditionnement.png},
+  deux panneaux : à gauche, $\kappa(A)$ et $\kappa(H)$ en fonction du nombre
+  de conduites (axes doubles) ; à droite, nombre d'itérations en fonction de
+  $\kappa(H)$, annoté du nombre de boucles par variante.
+  \item[Interprétation attendue] Relation croissante (non nécessairement
+  linéaire) entre conditionnement et nombre d'itérations. Le docstring
+  signale explicitement de ne pas sur-interpréter une régression linéaire
+  sur cinq points.
+  \item[Lien avec la théorie] C'est $\kappa(H)$, et non $\kappa(A)$, qui
+  gouverne la vitesse de la descente de gradient, selon la section~6.3 du
+  document de M4 citée dans le code.
+  \item[Limites] Conditions de validité rappelées dans le docstring : toutes
+  les variantes doivent rester connexes (sinon le rang de $A$ change de
+  nature et les $\kappa$ ne sont plus comparables) ; $\mu$, la tolérance
+  doivent rester identiques d'une variante à l'autre. Les valeurs numériques
+  réelles n'ont pas été transmises. Information non disponible dans les
+  fichiers fournis.
+\end{description}
+
+\subsection{Expérience 6 --- Quartiers à risque}
+
+Voir la réserve d'attribution détaillée en section~15. Le contenu est
+documenté ici tel que transmis.
+
+\begin{description}[style=nextline]
+  \item[Objectif déclaré (docstring)] Repérer les quartiers dont la demande
+  s'écarte régulièrement des prévisions, et relier ce constat à la
+  robustesse de $q^*$.
+  \item[Attribution réelle du code] Le fichier s'auto-attribue explicitement
+  à M3 dans un bloc de commentaires précédant le code exécutable : « Ce
+  script (Étape~4) [\ldots] Implémentation du Membre 3 (Probabilités et
+  Statistiques) ». Le code n'importe que
+  \texttt{src.probability.demand\_model.DemandModel} ; aucun des quatre
+  modules de M5 n'est utilisé.
+  \item[Méthode réellement implémentée] Tirage de $N = 10\,000$ scénarios
+  via \texttt{DemandModel.sample\_demands} (graine 42), calcul des
+  quantiles empiriques à 95~\% et 99~\%, et du pic maximal observé, par
+  quartier. Des libellés de type de risque (« Topologique (Pont unique) »
+  pour Q1, « Stochastique (Forte variance) » pour Q6, « Transit inter-zones »
+  pour Q4/Q5, « Modéré / Standard » sinon) sont codés en dur dans le script,
+  sans calcul topologique réel à l'appui : le réseau (objet
+  \texttt{Reseau}/\texttt{network\_config.json} via \texttt{charger\_reseau})
+  n'est jamais chargé dans ce script, contrairement aux Expériences 3, 4 et
+  5.
+  \item[Écart avec la méthode annoncée] La fonction
+  \texttt{quartiers\_atypiques} de \texttt{demand\_model.py}, qui calcule
+  précisément une fréquence de dépassement d'intervalle de confiance par
+  quartier --- exactement ce que décrit le docstring de l'Expérience 6 ---
+  n'est pas appelée par le script fourni. Le script utilise à la place une
+  analyse par quantiles simples (95~\%, 99~\%, maximum observé), sans
+  notion de biais volontaire introduit sur des quartiers connus, ni de
+  comparaison au taux de fausses alertes attendu de 5~\% mentionné dans le
+  docstring.
+  \item[Sorties produites] Quatre figures dans \texttt{results/figures/} :
+  \begin{enumerate}
+    \item \texttt{fig1\_matrices\_correlation\_covariance.png} : matrices de
+    corrélation $R$ et de covariance $\Sigma$ du modèle.
+    \item \texttt{fig2\_densites\_probabilites\_demande.png} : densités
+    gaussiennes de demande par quartier.
+    \item \texttt{fig3\_convergence\_loi\_grands\_nombres.png} : erreur
+    empirique $\lVert \hat\mu_N - \mu \rVert_2$ en fonction de $N \in
+    \{10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 50000\}$, comparée
+    à la pente théorique en $O(1/\sqrt{N})$, en échelle log-log.
+    \item \texttt{fig4\_profil\_risque\_quartiers.png} : boîtes à moustaches
+    de la demande par quartier, avec un seuil de charge critique locale
+    codé en dur à 60~m$^3$/h.
+  \end{enumerate}
+  \item[Interprétation] Non disponible pour les valeurs numériques ; les
+  figures ne sont pas fournies en tant qu'images dans ce document.
+  \item[Lien avec la théorie] La Figure~3 réalise concrètement la
+  vérification empirique de la décroissance en $1/\sqrt{N}$ que le docstring
+  de \texttt{erreur\_estimation} (module de M5) attribue explicitement au
+  rôle de l'Expérience 2. Ce recouvrement est à faire trancher par le
+  groupe : soit l'Expérience 2 (attribuée à M5, dépendante de M6) est
+  redondante avec cette figure, soit elle doit couvrir un aspect différent
+  non encore précisé.
+  \item[Limites] Le script contient une note d'intégration indiquant qu'un
+  squelette d'origine, qui levait une \texttt{NotImplementedError}, faisait
+  planter le script avant d'atteindre le code utile ; les quatre figures
+  ont donc été produites en appelant \texttt{run\_experiment\_6} directement
+  plutôt que via le point d'entrée \texttt{main()} tel qu'exécuté
+  normalement. Le fichier fourni corrige cet ordre, mais ce point historique
+  est à connaître pour la reproductibilité (section~12).
+\end{description}
+
+% =====================================================================
+\section{Résultats obtenus}
+% =====================================================================
+
+Aucun fichier de résultats (CSV de \texttt{results/tables/}, images de
+\texttt{results/figures/}) n'a été transmis avec cette demande. Les scripts
+fournis produisent du code capable de générer ces résultats, mais
+\textbf{aucune valeur numérique réelle} (conditionnement mesuré, nombre
+d'itérations effectif, violation résiduelle observée, etc.) n'apparaît dans
+les fichiers source eux-mêmes : ces valeurs ne sont connues qu'à l'exécution.
+
+Information non disponible dans les fichiers fournis pour l'ensemble de
+cette section. Le tableau~\ref{tab:resultats-attendus} récapitule uniquement
+la nature des résultats que chaque expérience \emph{produirait} à
+l'exécution, sans préjuger de leur valeur.
+
+\begin{longtable}{L{2cm}L{2.7cm}L{4.5cm}L{4cm}}
+\caption{Nature des résultats attendus par expérience (valeurs non
+disponibles).}
+\label{tab:resultats-attendus}\\
+\toprule
+Expérience & Fichier source & Table attendue & Figure attendue \\
+\midrule
+\endhead
+3 & \texttt{results/tables/ exp3\_sensibilite\_mu.csv} & $\mu$, $L$,
+$\kappa(H)$, pas, itérations, coût, violation & \texttt{exp3\_sensibilite\_mu.png} \\
+4 & \texttt{results/tables/ exp4\_convergence.csv} & facteur de la borne,
+$\eta$, convergence, itérations, $J$ final & \texttt{exp4\_convergence.png} \\
+5 & \texttt{results/tables/ exp5\_maillage\_conditionnement.csv} & densité,
+conduites, $\kappa(A)$, $\kappa(H)$, itérations & \texttt{exp5\_maillage\_conditionnement.png} \\
+6 & --- (attribué à M3) & non produite (impression console uniquement) & 4 figures listées en section~10.4 \\
+\bottomrule
+\end{longtable}
+
+Pour compléter cette section, transmettre à M5 (ou directement à M6) le
+contenu réel de \texttt{results/tables/} et, si possible, les images de
+\texttt{results/figures/}.
+
+% =====================================================================
+\section{Reproductibilité}
+% =====================================================================
+
+\begin{description}[style=nextline]
+  \item[Environnement] Python avec \texttt{numpy}, \texttt{scipy}
+  (\texttt{scipy.stats}), \texttt{matplotlib} (backend \texttt{Agg} imposé
+  explicitement dans les scripts d'expérience, pour un rendu sans affichage
+  interactif). Version exacte de Python et des dépendances : information non
+  disponible dans les fichiers fournis (pas de \texttt{requirements.txt} ni
+  de fichier d'environnement transmis).
+  \item[Commandes] Chaque script d'expérience s'exécute indépendamment,
+  via son bloc \texttt{if \_\_name\_\_ == "\_\_main\_\_":} qui appelle
+  \texttt{main()}. Exemple : \texttt{python experiments/
+  exp3\_sensitivity\_mu.py}. Un module \texttt{\_bootstrap} est importé en
+  tête de chaque script d'expérience (\texttt{3}, \texttt{4}, \texttt{5}) et
+  expose au minimum \texttt{CONFIG}, \texttt{TABLEAUX} et \texttt{FIGURES} ;
+  son contenu réel n'a pas été transmis. Information non disponible dans les
+  fichiers fournis.
+  \item[Ordre d'exécution] Aucune dépendance d'ordre n'existe entre les
+  Expériences 3, 4 et 5 : chacune recharge le réseau et reconstruit ses
+  propres objets ($A$, $b$, coûts) indépendamment. L'Expérience 6, telle que
+  fournie, ne dépend d'aucune des trois autres.
+  \item[Dépendances] \texttt{exp3}, \texttt{exp4} et \texttt{exp5} dépendent
+  de \texttt{data.generate\_network.charger\_reseau} (M1),
+  \texttt{src.graph.build\_graph} (M1/M2) et, pour \texttt{exp5},
+  \texttt{data.generate\_network.generer\_variantes\_de\_maillage} et
+  \texttt{src.graph.graph\_analysis} (M2). \texttt{exp6} dépend uniquement
+  de \texttt{src.probability.demand\_model.DemandModel}, qui lit
+  \texttt{data/network\_config.json} (avec un repli sur un chemin relatif
+  \texttt{../../data/network\_config.json} si le premier chemin n'existe
+  pas) et retourne un dictionnaire vide si aucun des deux fichiers n'est
+  trouvé --- ce qui ferait alors échouer silencieusement le calcul de
+  $\mu, \sigma, \Sigma$ dans \texttt{parametres\_demande}/
+  \texttt{matrice\_covariance} plutôt que de signaler l'absence de fichier.
+  \item[Fichiers générés] \texttt{results/tables/*.csv} et
+  \texttt{results/figures/*.png}, selon le détail donné en section~10 et
+  résumé au tableau~\ref{tab:resultats-attendus}.
+\end{description}
+
+% =====================================================================
+\section{Tests et validation de l'implémentation}
+% =====================================================================
+
+Aucun fichier de test n'a été transmis avec cette demande. Les fichiers
+source de M5 \textbf{référencent} l'existence de tests, sans que leur
+contenu soit disponible :
+
+\begin{itemize}
+  \item \texttt{tests/test\_projection.py}, mentionné dans le docstring de
+  \texttt{projeter\_orthant\_positif} comme testant cette fonction de
+  manière isolée.
+  \item Un test nommé
+  \texttt{test\_le\_lot\_donne\_le\_meme\_resultat\_que\_la\_boucle},
+  mentionné dans le docstring de \texttt{descente\_projetee\_par\_lot} comme
+  comparant les résultats de la version boucle et de la version lot sur le
+  réseau réel.
+\end{itemize}
+
+Le seul contrôle numérique dont le code source complet est disponible est
+\texttt{verifier\_gradient} (\texttt{objective.py}), qui compare le gradient
+analytique aux différences finies centrées et retourne l'écart relatif
+maximal, avec un seuil indicatif de $10^{-6}$ pour une dérivation jugée
+correcte. Il s'agit d'une fonction de contrôle, pas d'un test automatisé au
+sens \texttt{pytest} : rien dans les fichiers fournis n'indique qu'elle soit
+appelée par une suite de tests.
+
+Information non disponible dans les fichiers fournis : contenu réel des
+tests unitaires, tests d'intégration, couverture de code, cas limites
+couverts. \textbf{À demander explicitement au groupe} pour compléter cette
+section.
+
+% =====================================================================
+\section{Limites et points de vigilance}
+% =====================================================================
+
+\begin{enumerate}
+  \item \textbf{Le module \texttt{monte\_carlo.py} n'est exercé par aucune
+  expérience fournie.} Ses fonctions de génération de scénarios et
+  d'agrégation statistique sont implémentées mais non démontrées
+  empiriquement dans les fichiers transmis.
+  \item \textbf{Les fonctions batch de \texttt{run\_scenarios.py} ne sont
+  exercées par aucune expérience fournie.} \texttt{resoudre\_tous},
+  \texttt{descente\_projetee\_par\_lot} et \texttt{scenarios\_de\_stress}
+  sont implémentées mais non appelées ailleurs dans les fichiers transmis.
+  \item \textbf{L'étape d'agrégation du pipeline n'est pas câblée} entre
+  \texttt{run\_scenarios.py} et \texttt{monte\_carlo.agreger}.
+  \item \textbf{Écart de critère d'arrêt avec M4}, documenté en section~4.2
+  et non encore arbitré par le groupe.
+  \item \textbf{Attribution de \texttt{exp6\_at\_risk\_districts.py}
+  ambiguë}, développée en détail en section~15.
+  \item \textbf{Recouvrement possible entre l'Expérience 2 (attendue de
+  M5/M6) et la Figure~3 de l'Expérience 6 (M3)}, toutes deux portant sur la
+  vérification empirique de la décroissance en $1/\sqrt{N}$.
+  \item \textbf{Paramètre sensible : $\mu$.} L'Expérience 3 documente
+  explicitement que $\mu$ contrôle un compromis précision/vitesse ; un choix
+  de $\mu$ mal justifié dans le rapport final fragiliserait la comparaison
+  avec la stratégie de référence.
+  \item \textbf{Hypothèse forte : coûts strictement positifs.} La convexité
+  stricte de $J$ dépend de $c_e > 0$ pour tout $e$ ; aucun contrôle
+  explicite de cette hypothèse n'apparaît dans \texttt{objective.py} lui-même
+  (elle serait normalement garantie en amont, par M1/M2).
+  \item \textbf{Chargement silencieux d'une configuration manquante.} La
+  classe \texttt{DemandModel} de \texttt{demand\_model.py} retourne un
+  dictionnaire vide si \texttt{network\_config.json} n'est trouvé à aucun des
+  deux chemins testés, plutôt que de lever une exception explicite --- ce qui
+  contraste avec le choix assumé ailleurs dans \texttt{demand\_model.py} de
+  ne jamais avoir de repli silencieux.
+  \item \textbf{Absence de tests transmis.} Impossible de confirmer l'état
+  réel de validation de \texttt{descente\_projetee\_par\_lot} face à
+  \texttt{descente\_projetee}, ni de \texttt{projeter\_orthant\_positif}.
+  \item \textbf{Absence de résultats numériques transmis.} Aucune valeur
+  réelle de $\kappa$, de nombre d'itérations, de violation résiduelle ou de
+  coût technique n'est disponible pour cette fiche (section~11).
+\end{enumerate}
+
+% =====================================================================
+\section{Interface avec le Membre 6}
+% =====================================================================
+
+Cette section synthétise, à l'intention de M6, l'état exploitable de la
+contribution de M5.
+
+\begin{description}[style=nextline]
+  \item[Modules directement utilisables] \texttt{objective.py} et
+  \texttt{gradient\_descent.py} sont complets, cohérents entre eux et
+  exercés par trois expériences fonctionnelles (3, 4, 5). Ce sont les
+  modules les plus fiables de la contribution de M5 à ce stade de l'audit.
+  \item[Fonctions constituant des interfaces importantes]
+  \texttt{descente\_projetee(A, b, couts, mu, \ldots)} pour résoudre un
+  problème à une demande donnée ; \texttt{cout},
+  \texttt{violation\_contrainte} pour évaluer une solution ;
+  \texttt{pas\_maximal\_theorique(A, couts, mu)} pour obtenir la borne $2/L$
+  nécessaire à tout choix de pas.
+  \item[Données récupérables] Historiques de convergence complets
+  (\texttt{HistoriqueConvergence}) pour les Expériences 3, 4, 5 ; résultats
+  structurés par scénario (\texttt{ResultatScenario}) si M6 exerce
+  \texttt{run\_scenarios.py}, ce qui n'a pas encore été fait par les
+  fichiers fournis.
+  \item[Résultats déjà disponibles] Aucune valeur numérique concrète n'a été
+  transmise avec les fichiers audités (voir section~11). M6 doit obtenir de
+  M5 le contenu réel de \texttt{results/tables/*.csv} et
+  \texttt{results/figures/*.png} pour intégrer des chiffres au rapport.
+  \item[Expériences intégrables immédiatement] Les Expériences 3, 4 et 5,
+  sous réserve d'obtenir leurs sorties réelles : le code est complet et
+  cohérent, les protocoles sont documentés et justifiés.
+  \item[Expériences dépendantes du travail de M6] Les Expériences 1
+  (comparaison stratégie de référence / solution optimale) et 2 (robustesse
+  Monte-Carlo), selon les informations transmises initialement par M5. Le
+  code fourni suggère que ces deux expériences mobiliseraient
+  \texttt{run\_scenarios.py} et \texttt{monte\_carlo.py}, actuellement
+  inutilisés par aucun script fourni.
+  \item[Statut de l'Expérience 6] À traiter avec prudence : le script est
+  attribué à M3 par son propre en-tête, et non à M5. M6 doit clarifier avec
+  M3 et M5 lequel des deux volets (le script fourni, ou une version
+  utilisant \texttt{monte\_carlo.py} et \texttt{quartiers\_atypiques}) doit
+  entrer dans le rapport final, en particulier pour éviter une redondance
+  avec l'Expérience 2.
+  \item[Fichiers de résultats à consulter] \texttt{results/tables/
+  exp3\_sensibilite\_mu.csv}, \texttt{results/tables/exp4\_convergence.csv},
+  \texttt{results/tables/exp5\_maillage\_conditionnement.csv} ; aucun de ces
+  trois fichiers n'a été transmis à ce stade de l'audit.
+  \item[Figures intégrables au rapport] \texttt{exp3\_sensibilite\_mu.png},
+  \texttt{exp4\_convergence.png}, \texttt{exp5\_maillage\_conditionnement.png}
+  --- sous réserve de vérifier leur contenu réel, non transmis.
+  \item[Informations méthodologiques devant apparaître dans le rapport
+  final] Le choix du pas $\eta = 1/L$ par défaut et sa justification ; le
+  choix du critère d'arrêt par déplacement (et l'écart assumé avec le
+  document de M4, à faire trancher avant rédaction finale) ; le protocole
+  retenu pour chaque expérience concernant le recalcul ou non de $\eta$
+  d'une condition à l'autre (section~10) ; la distinction entre coût
+  technique et terme de pénalisation dans toute comparaison avec la
+  stratégie de référence (\texttt{objective.cout} est la métrique
+  pertinente, pas \texttt{objective.objectif}).
+\end{description}
+
+% =====================================================================
+\section{État d'avancement de M5}
+% =====================================================================
+
+\begin{longtable}{L{4.3cm}L{2.6cm}L{3.3cm}L{3.3cm}}
+\caption{État d'avancement de la contribution de M5.}
+\label{tab:avancement}\\
+\toprule
+Élément & État & Fichier & Résultat \\
+\midrule
+\endhead
+Génération de scénarios (\texttt{generer\_scenarios}) & Terminé (implémenté) & \texttt{monte\_carlo.py} & Non exploité par les scripts fournis \\
+Agrégation statistique (\texttt{agreger}, \texttt{erreur\_estimation}, \texttt{convergence\_par\_taille}) & Terminé (implémenté) & \texttt{monte\_carlo.py} & Non exploité empiriquement dans les fichiers fournis \\
+Fonction objectif et gradient & Terminé, avec contrôle numérique & \texttt{objective.py} & Utilisé par exp3, exp4, exp5 \\
+Descente de gradient projetée & Terminé & \texttt{gradient\_descent.py} & Utilisé par exp3, exp4, exp5 \\
+Résolution par lot (\texttt{resoudre\_tous}, \texttt{descente\_projetee\_par\_lot}) & Terminé (implémenté) & \texttt{run\_scenarios.py} & Non exploité par les scripts fournis \\
+Scénarios de stress (\texttt{scenarios\_de\_stress}) & Terminé (implémenté) & \texttt{run\_scenarios.py} & Non exploité par les scripts fournis \\
+Expérience 3 (sensibilité $\mu$) & Terminé, table et figure produites par le code & \texttt{exp3\_sensitivity\_mu.py} & Valeurs numériques : à valider (non transmises) \\
+Expérience 4 (vérification convergence) & Terminé, table et figure produites par le code & \texttt{exp4\_convergence\_check.py} & Valeurs numériques : à valider (non transmises) \\
+Expérience 5 (maillage vs conditionnement) & Terminé, table et figure produites par le code & \texttt{exp5\_conditioning\_vs\_mesh.py} & Valeurs numériques : à valider (non transmises) \\
+Expérience 6 (quartiers à risque) & Terminé, 4 figures produites --- attribution à confirmer avec le groupe & \texttt{exp6\_at\_risk\_districts.py} & Attribué à M3 dans le code ; à valider \\
+Expérience 1 (baseline vs optimal) & Dépend d'un autre membre & \texttt{exp1\_baseline\_vs\_optimal.py} & Information non disponible \\
+Expérience 2 (robustesse Monte-Carlo) & Dépend d'un autre membre & \texttt{exp2\_monte\_carlo\_robustness.py} & Information non disponible ; recouvrement possible avec la Figure~3 de exp6 \\
+Tests unitaires de M5 & À valider & référencés (\texttt{test\_projection.py} et un test de comparaison boucle/lot), non transmis & Information non disponible \\
+\bottomrule
+\end{longtable}
+
+% =====================================================================
+\section{Checklist de transmission à M6}
+% =====================================================================
+
+\begin{itemize}[label=$\square$]
+  \item Contenu réel de \texttt{results/tables/exp3\_sensibilite\_mu.csv}
+  transmis.
+  \item Contenu réel de \texttt{results/tables/exp4\_convergence.csv}
+  transmis.
+  \item Contenu réel de \texttt{results/tables/
+  exp5\_maillage\_conditionnement.csv} transmis.
+  \item Images des figures \texttt{exp3\_sensibilite\_mu.png},
+  \texttt{exp4\_convergence.png}, \texttt{exp5\_maillage\_conditionnement.png}
+  transmises.
+  \item Statut de l'Expérience 6 clarifié avec M3 et le groupe (script
+  conservé tel quel, réattribué, ou remplacé par une version utilisant
+  \texttt{monte\_carlo.py}).
+  \item Recouvrement entre l'Expérience 2 et la Figure~3 de l'Expérience 6
+  tranché.
+  \item Écart de critère d'arrêt avec le document de M4 (section~4.2)
+  arbitré et harmonisé entre le code et le rapport.
+  \item Fichiers de tests réels (\texttt{tests/test\_projection.py} et le
+  test de comparaison boucle/lot) transmis ou leur absence confirmée.
+  \item Contenu de \texttt{network\_config.json} transmis, pour documenter
+  précisément le format d'entrée du pipeline.
+  \item Contenu de \texttt{src/graph/build\_graph.py} et
+  \texttt{src/graph/graph\_analysis.py} (M1/M2) obtenu si M6 a besoin de
+  documenter l'interface amont de \texttt{run\_scenarios.py} et de
+  l'Expérience 5.
+  \item Choix méthodologique tranché sur la lecture retenue pour
+  \texttt{scenarios\_de\_stress} (quantile marginal par quartier, ou
+  quantile de la demande totale).
+  \item Décision du groupe sur le nombre de scénarios Monte-Carlo à retenir
+  pour \texttt{generer\_scenarios}, actuellement non fixé dans le code.
+\end{itemize}
+
+\end{document}
