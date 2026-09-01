@@ -223,7 +223,7 @@ pseudo-code est accepté, et lui seul.
 Un jury sérieux cherche les limites. Autant les connaître avant qu'on vous les montre.
 
 Le modèle ne contient aucun terme d'équité dans son objectif. L'équité observée est un effet
-de bord du coût quadratique, qui répartit au lieu de concentrer. Le rapport doit l'assumer.
+ de bord du coût quadratique, qui répartit au lieu de concentrer. Le rapport doit l'assumer.
 
 Les capacités des conduites sont dans le fichier de configuration mais ne sont pas imposées au
 solveur. Rien n'empêche la solution de dépasser une capacité. Il faut le vérifier après coup et

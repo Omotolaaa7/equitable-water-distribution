@@ -67,9 +67,8 @@ pip install -r requirements.txt
 pytest
 ```
 
-Sept tests doivent passer et huit s'afficher comme ignorés, aucun en erreur. Les ignorés sont
-ceux qui attendent le jalon. Une erreur signale un problème d'installation à régler avant tout
-le reste.
+Les 46 tests doivent passer, aucun ignoré ni en erreur. Une erreur signale un problème
+d'installation à régler avant tout le reste.
 
 **La compréhension du code existant.** Les squelettes de `src/` contiennent déjà, dans leurs
 docstrings, le contrat de chaque fonction, son responsable et la formule qu'elle implémentera.
@@ -89,41 +88,24 @@ possible : on sait déjà que la projection ne doit jamais renvoyer de négatif,
 idempotente, que chaque colonne de A doit sommer à zéro. Les fichiers de `tests/` sont déjà là,
 avec les intentions écrites.
 
-## 4. Ce qui est bloqué, et par quoi exactement
+## 4. Où en est le périmètre du Membre 5, au 31 août 2026
 
-| Ce que je veux coder | Bloqué par | Ce que j'attends précisément |
-|---|---|---|
-| `monte_carlo.generer_scenarios` | plus rien | Le modèle de demande est livré, testé, et lit la configuration |
-| `objective.objectif` | M4 | La formule de `J(q)` écrite et validée par le groupe |
-| `objective.gradient` | M4 | La dérivation de `∇J` relue par deux membres |
-| `gradient_descent.pas_maximal_theorique` | M4 et M2 | La borne `2/L` et la façon de calculer `L` |
-| `gradient_descent.descente_projetee` | M4 | La règle de mise à jour et le critère d'arrêt en pseudo-code |
-| Les 6 expériences | tout ce qui précède | Un solveur qui tourne sur un petit cas vérifiable |
+| Livrable | État |
+|---|---|
+| `src/optimization/objective.py` | Fait, d'après les dérivations du Membre 4 |
+| `src/optimization/gradient_descent.py` | Fait |
+| `src/probability/monte_carlo.py` | Fait |
+| `src/simulation/run_scenarios.py` | Fait, avec une version vectorisée sur tous les scénarios |
+| Expérience 3, sensibilité à `µ` | Faite, figure et tableau |
+| Expérience 4, borne de convergence | Faite, figure et tableau |
+| Expérience 5, maillage et conditionnement | Faite, figure et tableau |
+| Expérience 1, référence contre `q*` | Bloquée par `baseline.py`, qui appartient au Membre 6 |
+| Expérience 2, robustesse Monte-Carlo | Bloquée par `baseline.py` également |
 
-Le jalon de la section 16 du plan est explicite : tant que les huit points ne sont pas cochés,
-aucune ligne de code de `src/optimization/`.
+Les deux expériences restantes comparent la répartition optimisée à la pratique actuelle. Elles
+ne peuvent pas s'écrire tant que la pratique actuelle n'est pas définie dans le code.
 
-Cette règle vient de la contrainte méthodologique 1 du sujet, elle est notée, et une pull
-request qui implémente une formule doit pointer vers la section du rapport où elle est
-démontrée.
-
-### L'état du modèle de demande
-
-Les huit fonctions que `monte_carlo.py` et les six expériences appellent sont écrites et
-testées. Elles lisent `data/network_config.json`, moyennes, écarts-types et corrélations
-comprises, donc le fichier du Membre 1 est bien la seule source de vérité.
-
-La classe `DemandModel` existe toujours à la fin du fichier. Elle délègue maintenant aux
-mêmes fonctions, donc les deux façons d'appeler donnent le même résultat. Vous pouvez utiliser
-l'une ou l'autre sans risque.
-
-Une chose reste à savoir avant de coder par-dessus. Une structure de configuration non
-reconnue lève désormais une exception explicite, au lieu de retomber en silence sur des
-valeurs internes. Si vous voyez passer un `ValueError: Aucun quartier lisible`, c'est que le
-chemin du fichier est faux, pas que le modèle est cassé.
-
-`experiments/exp6_at_risk_districts.py` s'exécute maintenant en ligne de commande et expose
-un `main()`, comme les cinq autres scripts d'expérience. Les six suivent donc la même forme.
+La suite de tests est passée de 8 tests ignorés à 46 tests qui passent.
 
 ## 5. L'ordre de travail recommandé
 

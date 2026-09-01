@@ -1,7 +1,7 @@
 # Ce qui existe déjà, expliqué simplement
 
-État du projet au 31 août 2026, après la fusion des branches, le branchement du modèle de
-demande sur le fichier de configuration et la réparation de l Expérience 6. Toutes les valeurs de ce document
+État du projet au 31 août 2026, après la livraison du Membre 4, l'implémentation du solveur
+d'optimisation et l'exécution des Expériences 3, 4 et 5. Toutes les valeurs de ce document
 ont été produites en exécutant le code du dépôt, pas recopiées d'ailleurs.
 
 À lire juste après [01_le_projet_sans_maths.md](01_le_projet_sans_maths.md). Le document 01
@@ -25,9 +25,9 @@ Où trouver quoi, quand on ouvre le projet pour la première fois.
 | `data/` | La description du réseau et le code qui la lit |
 | `src/graph/` | Le graphe et la matrice `A` |
 | `src/probability/` | Le modèle de demande et les tirages au hasard |
-| `src/optimization/` | Le calcul de la meilleure répartition. Encore vide |
-| `src/simulation/` | L'enchaînement des calculs sur chaque scénario. Encore vide |
-| `src/evaluation/` | La comparaison avec la méthode actuelle. Encore vide |
+| `src/optimization/` | Le calcul de la meilleure répartition |
+| `src/simulation/` | L'enchaînement des calculs sur chaque scénario |
+| `src/evaluation/` | La comparaison avec la méthode actuelle. Reste à écrire, par M6 |
 | `experiments/` | Les six expériences imposées par le sujet |
 | `results/` | Les figures et tableaux produits |
 | `report/` | Le rapport final, sans une ligne de code dedans |
@@ -231,28 +231,58 @@ estimée), identifié les quartiers qui consomment souvent autrement que prévu,
 figures dans `results/figures/`. Sa section de rapport est dans
 `docs/probabilites_statistiques/`.
 
-## 7. Ce qui manque encore, et qui est votre partie
+## 7. Le solveur, construit à partir du document du Membre 4
 
-Aujourd'hui, on sait décrire le réseau, écrire l'équation `Aq = b`, et fabriquer des journées
-possibles. Personne ne sait encore **choisir** la meilleure répartition parmi les quatre degrés
-de liberté.
+Le Membre 4, Aïchatou Traoré, a livré `docs/section_optimisation_membre4.pdf`, huit pages qui
+démontrent la convexité, dérivent le gradient à la main, posent l'algorithme, établissent la
+borne sur le pas et analysent l'influence de `µ`. Le jalon du plan était là.
 
-Il manque trois briques, et elles s'enchaînent.
+Le code de `src/optimization/` en est la traduction littérale. Trois briques.
 
-La **fonction de coût**, qui dit combien coûte une répartition donnée. Elle est en carré :
-doubler un débit multiplie son coût par quatre. Cette forme pousse à étaler les débits plutôt
-qu'à les concentrer, et c'est de là que viendra le gain sur la méthode actuelle.
+La **fonction de coût pénalisée**, qui additionne le coût réel de l'acheminement et une amende
+proportionnelle à l'écart avec la conservation des flux.
 
-La **pénalisation** (remplacer une règle obligatoire par une amende), qui permet de traiter
-l'équation `Aq = b` avec la seule méthode vue en cours. Au lieu d'interdire de violer la
-conservation, on la rend coûteuse.
+Le **gradient**, la direction de plus forte pente, calculé d'après sa dérivation.
 
-La **descente de gradient** (avancer petit à petit dans le sens de la pente), qui cherche le
-fond de la vallée. Avec une **projection** (ramener dans le domaine autorisé) à chaque pas, pour
-interdire les débits négatifs, qui n'auraient aucun sens physique.
+La **descente de gradient projetée**, qui descend petit à petit vers le fond, en remettant à
+zéro à chaque pas les débits devenus négatifs.
 
-Ces trois briques sont bloquées tant que le Membre 4 n'a pas écrit et fait relire ses
-démonstrations. C'est le jalon du plan de projet, et il est noté.
+### La vérification qui compte
+
+Son document contient un exemple entièrement calculé à la main, sur un réseau minuscule à deux
+conduites. Le code a été confronté à ses quatre valeurs :
+
+```
+  coût de transport         34.0   le Membre 4 annonce 34
+  résidu Aq - b             [ 2. -1. -1.]   il annonce (2, -1, -1)
+  J(q)                      94.0   il annonce 94
+  gradient                  [-54. -50.]   il annonce (-54, -50)
+```
+
+Tout tombe juste. La chaîne allant de la dérivation manuscrite jusqu'au code tient, et c'est
+exactement ce que la contrainte méthodologique du sujet demande de pouvoir montrer.
+
+### Le solveur sur le vrai réseau
+
+```
+      mu    cout total   violation   iterations   converge
+       1     11409.76    84.27515         156   True
+      10     27449.70    15.81540        1263   True
+     100     32360.32     2.00743       11077   True
+    1000     33093.64     0.20649       96699   True
+```
+
+Tous les débits sortent positifs, et aucune capacité de conduite n'est dépassée.
+
+### Un point à faire trancher par le Membre 4
+
+Son pseudo-code arrête la boucle quand la norme du gradient devient petite. Sur un problème
+projeté, ce critère peut ne jamais être atteint. C'est le cas ici : la conduite Q4 vers Q5 finit
+à exactement zéro, son gradient reste non nul, la projection l'annule à chaque tour, et la norme
+plafonne à 54,79 sans jamais descendre.
+
+Le code propose ses trois critères et retient par défaut celui du déplacement, qui capte le
+point où `q` ne bouge plus. L'écart est documenté dans le code, il reste à harmoniser le rapport.
 
 ## 8. Où en est chaque fichier
 
@@ -262,13 +292,13 @@ démonstrations. C'est le jalon du plan de projet, et il est noté.
 | `src/graph/build_graph.py` | 226 | Fait par M2 |
 | `src/graph/graph_analysis.py` | 260 | Fait par M2 |
 | `src/probability/demand_model.py` | 358 | Fait par M3, lit la configuration, 7 tests passent |
-| `src/probability/monte_carlo.py` | 92 | 4 fonctions vides, à faire par M5 |
-| `src/optimization/objective.py` | 149 | 6 fonctions vides, bloquées par le jalon |
-| `src/optimization/gradient_descent.py` | 135 | 3 fonctions vides, bloquées par le jalon |
-| `src/simulation/run_scenarios.py` | 79 | 3 fonctions vides, à faire par M5 |
-| `src/evaluation/baseline.py` | 50 | 1 fonction vide, à faire par M6 |
-| `src/evaluation/metrics.py` | 97 | 6 fonctions vides, à faire par M6 |
-| `src/evaluation/compare_strategies.py` | 75 | 4 fonctions vides, à faire par M6 |
+| `src/probability/monte_carlo.py` | 141 | Fait par M5 |
+| `src/optimization/objective.py` | 175 | Fait par M5, d'après M4 |
+| `src/optimization/gradient_descent.py` | 216 | Fait par M5, d'après M4 |
+| `src/simulation/run_scenarios.py` | 203 | Fait par M5 |
+| **`src/evaluation/baseline.py`** | 50 | **1 fonction vide, à faire par M6** |
+| **`src/evaluation/metrics.py`** | 97 | **6 fonctions vides, à faire par M6** |
+| **`src/evaluation/compare_strategies.py`** | 75 | **4 fonctions vides, à faire par M6** |
 
 Une fonction « vide » contient sa description complète et son contrat, mais pas encore son
 calcul. Elle lève une erreur si on l'appelle. C'est voulu, pour éviter qu'un résultat faux passe
@@ -281,32 +311,32 @@ inaperçu.
 | M1, ATTIOU19 | Réseau et hypothèses | Livré. Configuration, code de chargement, 3 documents Word |
 | M2, Godwin Akakpo | Algèbre linéaire | Livré. Code complet et section de rapport compilée |
 | M3, CLEMOU | Probabilités et statistiques | Livré. Code complet, section de rapport, 4 figures |
-| **M4** | **Optimisation** | **Rien livré à ce jour.** Aucun commit, aucune section de rapport |
-| **M5** | **Code et expériences** | **1 expérience sur 6.** Les 4 modules restent vides |
-| M6 | Comparaison et rapport | Ne peut pas commencer tant que M5 n'a pas de résultats |
+| M4, Aïchatou Traoré | Optimisation | Livré. Section de rapport de 8 pages, avec un exemple calculé à la main |
+| M5 | Code et expériences | Solveur, Monte-Carlo, orchestration et 4 expériences sur 6. Les deux restantes attendent M6 |
+| **M6** | **Comparaison et rapport** | **C'est maintenant le seul poste sur le chemin critique** |
 
 ### Les six expériences, une par une
 
 | Expérience | État | Qui |
 |---|---|---|
-| 1, référence contre `q*` | Non écrite | M5, bloquée par le jalon |
-| 2, robustesse Monte-Carlo | Non écrite | M5, bloquée par le jalon |
-| 3, sensibilité à `µ` | Non écrite | M5, bloquée par le jalon |
-| 4, borne de convergence | Non écrite | M5, bloquée par le jalon |
-| 5, maillage et conditionnement | Non écrite | M5, bloquée par le jalon |
-| 6, quartiers à risque | Faite et exécutable | M3 |
+| 1, référence contre `q*` | Non écrite, **bloquée par `baseline.py`** | M6 puis M5 |
+| 2, robustesse Monte-Carlo | Non écrite, **bloquée par `baseline.py`** | M6 puis M5 |
+| 3, sensibilité à `µ` | Faite, figure et tableau produits | M5 |
+| 4, borne de convergence | Faite, figure et tableau produits | M5 |
+| 5, maillage et conditionnement | Faite, figure et tableau produits | M5 |
+| 6, quartiers à risque | Faite, quatre figures produites | M3 |
 
 L'Expérience 1 est le livrable central que le sujet réclame explicitement, la comparaison
-chiffrée entre la distribution actuelle et `q*`. Elle n'existe pas encore.
+chiffrée entre la distribution actuelle et `q*`. Elle attend que le Membre 6 code la
+stratégie de référence, puisqu'on ne peut pas comparer à quelque chose qui n'existe pas.
 
-Le dossier `results/tables/` est vide. Les quatre figures présentes viennent toutes de
-l'Expérience 6.
+`results/` contient désormais sept figures et trois tableaux.
 
 ### Ce qui bloque, en une phrase
 
-Le Membre 4 doit écrire ses démonstrations et les faire relire par deux personnes. Tant que ce
-jalon n'est pas franchi, le solveur ne peut pas être codé, les cinq expériences ne peuvent pas
-tourner, et le Membre 6 n'a rien à analyser.
+Le Membre 6 doit coder la stratégie de référence et les métriques de comparaison. Tant que ces
+trois modules restent vides, les deux dernières expériences ne peuvent pas s'écrire, et le
+livrable central du sujet reste hors de portée.
 
 ### Les corrections faites les 30 et 31 août
 
@@ -400,20 +430,18 @@ du modèle.
 
 ## 12. Ce qui vient ensuite, dans l'ordre
 
-Le Membre 4 écrit sa preuve de convexité, dérive le gradient à la main, établit la borne sur le
-pas d'apprentissage et le critère d'arrêt, puis fait relire le tout par deux autres membres.
-C'est le jalon, et c'est aujourd'hui le seul obstacle réel.
+Le Membre 6 code `baseline.py`, la répartition actuelle proportionnelle à la demande. Une
+décision de modélisation l'attend, et elle doit être écrite dans le rapport : la règle actuelle
+dit combien chaque **quartier** reçoit, pas par quelles **conduites** l'eau y arrive. Or c'est
+sur les conduites que se mesure le coût. Dès qu'il y a des boucles, plusieurs répartitions
+acheminent la même eau, et il faut choisir laquelle représente la pratique actuelle.
 
-Le Membre 5 code alors `objective.py` et `gradient_descent.py` d'après ces dérivations, vérifie
-le gradient par différences finies, et valide le solveur sur le petit cas à deux conduites
-parallèles dont la solution se pose à la main.
+Le Membre 6 code ensuite `metrics.py` et `compare_strategies.py`, les métriques de coût,
+d'équité et de violation.
 
-Le Membre 5 complète `monte_carlo.py` et `run_scenarios.py`, puis lance les Expériences 1, 4, 3,
-2 et 5, dans cet ordre, et produit les figures et les tableaux.
+Les Expériences 1 et 2 peuvent alors s'écrire et tourner, ce qui produit la comparaison chiffrée
+que le sujet réclame.
 
-Le Membre 6 code la stratégie de référence et les métriques, construit la comparaison chiffrée,
-puis rédige et assemble le rapport.
-
-Le rapport ne peut pas être finalisé avant que ces quatre étapes soient passées. Donner la main
-au Membre 6 aujourd'hui reviendrait à lui demander d'analyser des résultats qui n'existent pas,
-et de rédiger deux rubriques de la grille de notation qui pèsent 35 % à elles deux.
+Le Membre 6 rédige et assemble le rapport. Les sections de M1, M2, M3 et M4 sont déjà livrées,
+et les résultats des Expériences 3, 4, 5 et 6 sont disponibles avec leurs figures et leurs
+tableaux.

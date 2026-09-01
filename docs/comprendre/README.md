@@ -22,8 +22,12 @@ Le 31 août, le modèle de demande a été branché sur `network_config.json`, c
 l'écart de corrélations entre le fichier du Membre 1 et le code du Membre 3. Sept tests le
 vérifient désormais paire par paire.
 
-Le même jour, `experiments/exp6_at_risk_districts.py` a été réparé : il s'exécute en ligne de
-commande, et ses quatre figures ont été régénérées avec les corrélations à jour.
+Le même jour, `experiments/exp6_at_risk_districts.py` a été réparé, le Membre 4 a livré sa
+section de rapport, et le solveur d'optimisation a été écrit à partir de ses dérivations. Les
+Expériences 3, 4 et 5 tournent et ont produit leurs figures et leurs tableaux.
+
+Il reste les Expériences 1 et 2, qui attendent que le Membre 6 code la stratégie de référence
+et les métriques de comparaison.
 
 ## Dans quel ordre lire
 
