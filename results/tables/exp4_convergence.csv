@@ -1,0 +1,6 @@
+facteur_de_la_borne,eta,sous_la_borne,a_converge,iterations,motif_arret,J_final,remontee_maximale_de_J
+0.1,0.00015971225743625068,True,True,36750,"critère 'deplacement' atteint, seuil 1e-08",32763.29544389817,1.8189894035458565e-11
+0.5,0.0007985612871812533,True,True,8305,"critère 'deplacement' atteint, seuil 1e-08",32763.29544389727,1.4551915228366852e-11
+0.9,0.001437410316926256,True,True,4806,"critère 'deplacement' atteint, seuil 1e-08",32763.295443897245,2.1827872842550278e-11
+1.1,0.0017568348317987573,False,False,60000,nombre maximal d'itérations atteint (60000),76293970.02301753,15623399.312395364
+1.5,0.00239568386154376,False,False,93,divergence détectée à l'itération 93,1.1314827887054137e+26,5.820513588651267e+25
