@@ -1,6 +1,8 @@
 """Fonction de coût pénalisée J(q) et son gradient ∇J(q).
 
 Responsable : M5 pour l'implémentation, à partir des dérivations de M4.
+Source des formules : docs/section_optimisation_membre4.pdf, rédigé par
+Aïchatou Traoré. Les numéros de section cités ci-dessous renvoient à ce document.
 Dépend de : les Étapes 6, 7 et 8 (formulation, pénalisation, gradient).
 Alimente : ``gradient_descent`` et toutes les expériences.
 
@@ -58,7 +60,9 @@ def cout(q: np.ndarray, couts: np.ndarray) -> float:
         q: vecteur des débits, longueur |E|.
         couts: vecteur des c_e, longueur |E|.
     """
-    raise NotImplementedError("M5 à partir de M4, Étape 7.")
+    q = np.asarray(q, dtype=float)
+    couts = np.asarray(couts, dtype=float)
+    return float(np.sum(couts * q ** 2))
 
 
 def violation_contrainte(q: np.ndarray, A: np.ndarray, b: np.ndarray) -> float:
@@ -68,7 +72,8 @@ def violation_contrainte(q: np.ndarray, A: np.ndarray, b: np.ndarray) -> float:
     conservation des flux. C'est la métrique centrale de l'Expérience 3 :
     elle doit décroître quand µ augmente.
     """
-    raise NotImplementedError("M5 à partir de M4, Étape 7.")
+    residu = np.asarray(A, dtype=float) @ np.asarray(q, dtype=float) - np.asarray(b, dtype=float)
+    return float(np.linalg.norm(residu))
 
 
 def objectif(q: np.ndarray, A: np.ndarray, b: np.ndarray, couts: np.ndarray, mu: float) -> float:
@@ -84,7 +89,8 @@ def objectif(q: np.ndarray, A: np.ndarray, b: np.ndarray, couts: np.ndarray, mu:
     Returns:
         La valeur de J en q.
     """
-    raise NotImplementedError("M5 à partir de la dérivation validée de M4, Étape 7.")
+    residu = np.asarray(A, dtype=float) @ np.asarray(q, dtype=float) - np.asarray(b, dtype=float)
+    return cout(q, couts) + float(mu) * float(residu @ residu)
 
 
 def gradient(q: np.ndarray, A: np.ndarray, b: np.ndarray, couts: np.ndarray, mu: float) -> np.ndarray:
@@ -103,10 +109,14 @@ def gradient(q: np.ndarray, A: np.ndarray, b: np.ndarray, couts: np.ndarray, mu:
     Returns:
         Le gradient en q, longueur |E|.
     """
-    raise NotImplementedError(
-        "M5 à partir de la dérivation validée et relue de M4, Étape 8. "
-        "Vérifier ensuite avec verifier_gradient."
-    )
+    q = np.asarray(q, dtype=float)
+    A = np.asarray(A, dtype=float)
+    couts = np.asarray(couts, dtype=float)
+    residu = A @ q - np.asarray(b, dtype=float)
+
+    # 2Cq, avec C = diag(couts) : le produit terme a terme evite de construire
+    # la matrice diagonale, sans changer le resultat.
+    return 2.0 * couts * q + 2.0 * float(mu) * (A.T @ residu)
 
 
 def hessienne(A: np.ndarray, couts: np.ndarray, mu: float) -> np.ndarray:
@@ -116,7 +126,8 @@ def hessienne(A: np.ndarray, couts: np.ndarray, mu: float) -> np.ndarray:
     fois et sert à la fois à établir la borne sur le pas (λ_max) et à discuter
     le conditionnement du problème pénalisé.
     """
-    raise NotImplementedError("M5 à partir de M4, Étapes 8 et 9.")
+    A = np.asarray(A, dtype=float)
+    return 2.0 * np.diag(np.asarray(couts, dtype=float)) + 2.0 * float(mu) * (A.T @ A)
 
 
 def verifier_gradient(
@@ -146,4 +157,19 @@ def verifier_gradient(
         L'écart relatif maximal entre gradient analytique et numérique. Un
         ordre de grandeur de 1e-6 ou moins indique une dérivation correcte.
     """
-    raise NotImplementedError("M5, contrôle des Étapes 7 et 8, à écrire avant le solveur.")
+    q = np.asarray(q, dtype=float)
+    analytique = gradient(q, A, b, couts, mu)
+    numerique = np.empty_like(q)
+
+    for e in range(q.size):
+        perturbation = np.zeros_like(q)
+        perturbation[e] = h
+        numerique[e] = (
+            objectif(q + perturbation, A, b, couts, mu)
+            - objectif(q - perturbation, A, b, couts, mu)
+        ) / (2.0 * h)
+
+    # Ecart relatif, avec un plancher a 1 pour ne pas diviser par une composante
+    # quasi nulle du gradient, ce qui ferait exploser un ecart insignifiant.
+    echelle = np.maximum(np.abs(analytique), 1.0)
+    return float(np.max(np.abs(analytique - numerique) / echelle))

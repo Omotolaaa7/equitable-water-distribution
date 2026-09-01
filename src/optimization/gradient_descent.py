@@ -1,6 +1,8 @@
 """Descente de gradient projetée sur l'orthant positif.
 
 Responsable : M5 pour l'implémentation, à partir des dérivations de M4.
+Source des formules : docs/section_optimisation_membre4.pdf, rédigé par
+Aïchatou Traoré. Les numéros de section cités ci-dessous renvoient à ce document.
 Dépend de : ``objective`` (Étape 8) et du conditionnement calculé par M2.
 Étape 9 du pipeline.
 
@@ -43,6 +45,14 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
+from .objective import gradient, hessienne, objectif, violation_contrainte
+
+# Au-dela de ce deplacement en une iteration, la descente a divergé. Le seuil
+# n'est pas dans le document du Membre 4 : il sert de garde-fou a l'Experience 4,
+# qui fait exprès de dépasser la borne 2/L et remplirait sinon la sortie de inf
+# et de nan avant le nombre maximal d'itérations.
+SEUIL_DIVERGENCE = 1e12
+
 
 @dataclass
 class HistoriqueConvergence:
@@ -71,7 +81,7 @@ def projeter_orthant_positif(q: np.ndarray) -> np.ndarray:
     (``tests/test_projection.py``), et sa justification mathématique figure dans
     le docstring du module.
     """
-    raise NotImplementedError("M5 à partir de M4, Étape 9.")
+    return np.maximum(np.asarray(q, dtype=float), 0.0)
 
 
 def pas_maximal_theorique(A: np.ndarray, couts: np.ndarray, mu: float) -> float:
@@ -88,7 +98,10 @@ def pas_maximal_theorique(A: np.ndarray, couts: np.ndarray, mu: float) -> float:
     Returns:
         La borne 2/L, au-delà de laquelle la théorie ne garantit plus rien.
     """
-    raise NotImplementedError("M5 à partir de M4 et M2, Étape 9.")
+    # H est symétrique : eigvalsh, jamais eigvals, qui renverrait des valeurs
+    # complexes à partie imaginaire numérique et rendrait la comparaison bancale.
+    L = float(np.linalg.eigvalsh(hessienne(A, couts, mu)).max())
+    return 2.0 / L
 
 
 def descente_projetee(
@@ -100,6 +113,7 @@ def descente_projetee(
     q_initial: np.ndarray | None = None,
     tolerance: float = 1e-8,
     max_iterations: int = 10_000,
+    critere: str = "deplacement",
 ) -> tuple[np.ndarray, HistoriqueConvergence]:
     """Résout le problème pénalisé par descente de gradient projetée.
 
@@ -127,9 +141,76 @@ def descente_projetee(
     l'itération projetée. C'est un point à justifier explicitement dans le
     rapport : c'est exactement le genre de subtilité que la rubrique
     « Optimisation » évalue.
+
+    Écart assumé avec le document du Membre 4. Sa section 5.3 propose trois
+    critères, et son pseudo-code retient la norme du gradient. Sur un problème
+    projeté, ce critère peut ne jamais être atteint : une conduite dont le débit
+    optimal vaut zéro garde un gradient non nul, que la projection annule à
+    chaque tour. La boucle irait alors jusqu'à max_iterations sans que rien ne
+    signale d'anomalie.
+
+    Les trois critères de M4 sont donc tous disponibles via ``critere``, et le
+    déplacement est retenu par défaut. À signaler au Membre 4 pour qu'il tranche
+    et harmonise le rapport avec le code.
     """
-    raise NotImplementedError(
-        "M5 à partir des dérivations validées et relues de M4, Étape 9. "
-        "Livrable : algorithme validé sur un petit cas test dont la solution "
-        "est vérifiable à la main, avant utilisation sur le réseau complet."
-    )
+    A = np.asarray(A, dtype=float)
+    b = np.asarray(b, dtype=float)
+    couts = np.asarray(couts, dtype=float)
+
+    if critere not in {"deplacement", "gradient", "cout"}:
+        raise ValueError(
+            f"Critère d'arrêt inconnu : {critere!r}. Attendu 'deplacement', "
+            "'gradient' ou 'cout'."
+        )
+
+    if eta is None:
+        # Moitié de la borne théorique, soit 1/L. Dans la zone stable et loin du
+        # seuil, conformément à la section 5.2 du document du Membre 4. Ce choix
+        # doit être signalé dans le rapport plutôt que passé sous silence.
+        eta = 0.5 * pas_maximal_theorique(A, couts, mu)
+
+    if q_initial is None:
+        q = np.zeros(A.shape[1], dtype=float)
+    else:
+        q = projeter_orthant_positif(q_initial)
+
+    historique = HistoriqueConvergence()
+    cout_precedent = objectif(q, A, b, couts, mu)
+
+    for k in range(max_iterations):
+        g = gradient(q, A, b, couts, mu)
+        valeur = objectif(q, A, b, couts, mu)
+
+        historique.valeurs_objectif.append(valeur)
+        historique.normes_gradient.append(float(np.linalg.norm(g)))
+        historique.violations_contrainte.append(violation_contrainte(q, A, b))
+        historique.n_iterations = k + 1
+
+        # Mise à jour puis projection, à chaque itération (section 4.3 de M4).
+        q_suivant = projeter_orthant_positif(q - eta * g)
+        deplacement = float(np.linalg.norm(q_suivant - q))
+
+        if not np.isfinite(deplacement) or deplacement > SEUIL_DIVERGENCE:
+            historique.a_converge = False
+            historique.motif_arret = f"divergence détectée à l'itération {k + 1}"
+            return q_suivant, historique
+
+        q = q_suivant
+
+        if critere == "deplacement":
+            atteint = deplacement < tolerance
+        elif critere == "gradient":
+            atteint = historique.normes_gradient[-1] < tolerance
+        else:
+            valeur_suivante = objectif(q, A, b, couts, mu)
+            atteint = abs(valeur_suivante - cout_precedent) < tolerance
+            cout_precedent = valeur_suivante
+
+        if atteint:
+            historique.a_converge = True
+            historique.motif_arret = f"critère '{critere}' atteint, seuil {tolerance:g}"
+            return q, historique
+
+    historique.a_converge = False
+    historique.motif_arret = f"nombre maximal d'itérations atteint ({max_iterations})"
+    return q, historique
