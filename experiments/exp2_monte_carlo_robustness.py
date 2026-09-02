@@ -27,11 +27,57 @@ moins aussi fort que la moyenne : c'est la défaillance ponctuelle qui coûte.
 
 from __future__ import annotations
 
+import matplotlib
+
 import _bootstrap  # noqa: F401
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import numpy as np
+
+from data.generate_network import charger_reseau
+from src.evaluation.compare_strategies import (
+    comparer_sur_scenarios,
+    synthese,
+    test_significativite,
+)
+from src.graph.build_graph import construire_matrice_incidence
+from src.probability.monte_carlo import generer_scenarios
+from src.simulation.run_scenarios import resoudre_tous
 
 
 def main() -> None:
-    raise NotImplementedError("M5, Expérience 2.")
+    reseau = charger_reseau(_bootstrap.CONFIG)
+    A = construire_matrice_incidence(reseau)
+    scenarios = generer_scenarios(reseau, n_tirages=1000, graine=42)
+    resultats = resoudre_tous(reseau, A, scenarios, mu=100.0)
+    comparaison = comparer_sur_scenarios(reseau, A, resultats)
+    resume = synthese(comparaison)
+
+    comparaison.to_csv(_bootstrap.TABLEAUX / "exp2_comparaison_scenarios.csv", index=False)
+    resume.to_csv(_bootstrap.TABLEAUX / "exp2_synthese.csv", index=False)
+    test = test_significativite(
+        comparaison["cout_reference"].to_numpy(),
+        comparaison["cout_optimise"].to_numpy(),
+    )
+    with _bootstrap.TABLEAUX.joinpath("exp2_test_significativite.csv").open(
+        "w", newline="", encoding="utf-8"
+    ) as fichier:
+        ecrivain = __import__("csv").DictWriter(fichier, fieldnames=test.keys())
+        ecrivain.writeheader()
+        ecrivain.writerow(test)
+
+    plt.figure(figsize=(9, 5))
+    plt.hist(comparaison["cout_reference"], bins=30, alpha=0.55, label="Référence")
+    plt.hist(comparaison["cout_optimise"], bins=30, alpha=0.55, label="Optimisée")
+    plt.xlabel("Coût technique")
+    plt.ylabel("Nombre de scénarios")
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(_bootstrap.FIGURES / "exp2_monte_carlo_robustness.png", dpi=180)
+    plt.close()
+    print(f"Expérience 2 terminée : {len(comparaison)} scénarios, "
+          f"différence moyenne={test['difference_moyenne']:.2f}, "
+          f"p-valeur={test['p_valeur']:.3g}")
 
 
 if __name__ == "__main__":

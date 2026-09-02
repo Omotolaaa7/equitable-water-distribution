@@ -28,7 +28,11 @@ def cout_total(q: np.ndarray, couts: np.ndarray) -> float:
 
     Métrique de comparaison principale entre la référence et q*.
     """
-    raise NotImplementedError("M6, Étape 11.")
+    q = np.asarray(q, dtype=float)
+    couts = np.asarray(couts, dtype=float)
+    if q.shape != couts.shape:
+        raise ValueError("q et couts doivent avoir la même forme.")
+    return float(np.sum(couts * q ** 2))
 
 
 def taux_de_satisfaction(reseau, q: np.ndarray, demandes: np.ndarray) -> np.ndarray:
@@ -42,7 +46,20 @@ def taux_de_satisfaction(reseau, q: np.ndarray, demandes: np.ndarray) -> np.ndar
     Returns:
         Vecteur des s_i, longueur |quartiers|.
     """
-    raise NotImplementedError("M6, Étape 11.")
+    demandes = np.asarray(demandes, dtype=float)
+    q = np.asarray(q, dtype=float)
+    if demandes.shape != (len(reseau.quartiers),):
+        raise ValueError("demandes doit contenir une valeur par quartier.")
+    if q.shape != (len(reseau.conduites),):
+        raise ValueError("q doit contenir une valeur par conduite.")
+    recu = np.zeros(len(reseau.quartiers), dtype=float)
+    index = {quartier.identifiant: i for i, quartier in enumerate(reseau.quartiers)}
+    for debit, conduite in zip(q, reseau.conduites):
+        if conduite.cible in index:
+            recu[index[conduite.cible]] += debit
+        if conduite.source in index:
+            recu[index[conduite.source]] -= debit
+    return np.divide(recu, demandes, out=np.zeros_like(recu), where=demandes > 0)
 
 
 def ecart_type_satisfaction(taux: np.ndarray) -> float:
@@ -54,7 +71,10 @@ def ecart_type_satisfaction(taux: np.ndarray) -> float:
     monde de façon identique obtient un excellent score d'équité et reste un
     mauvais réseau.
     """
-    raise NotImplementedError("M6, Étape 11.")
+    taux = np.asarray(taux, dtype=float)
+    if taux.ndim != 1 or taux.size == 0:
+        raise ValueError("taux doit être un vecteur non vide.")
+    return float(np.std(taux, ddof=0))
 
 
 def quartier_le_moins_servi(reseau, taux: np.ndarray) -> tuple[str, float]:
@@ -65,7 +85,11 @@ def quartier_le_moins_servi(reseau, taux: np.ndarray) -> tuple[str, float]:
     écarts sont-ils réduits ? ». Les deux lectures peuvent se contredire, et
     c'est justement ce qui rend leur confrontation intéressante dans le rapport.
     """
-    raise NotImplementedError("M6, Étape 11.")
+    taux = np.asarray(taux, dtype=float)
+    if taux.shape != (len(reseau.quartiers),):
+        raise ValueError("taux doit contenir une valeur par quartier.")
+    indice = int(np.argmin(taux))
+    return reseau.quartiers[indice].identifiant, float(taux[indice])
 
 
 def violation_conservation(q: np.ndarray, A: np.ndarray, b: np.ndarray) -> float:
@@ -75,7 +99,10 @@ def violation_conservation(q: np.ndarray, A: np.ndarray, b: np.ndarray) -> float
     aucune raison de satisfaire la conservation : la comparer sur ce critère
     fait partie de l'argumentaire.
     """
-    raise NotImplementedError("M6, Étape 11.")
+    q = np.asarray(q, dtype=float)
+    A = np.asarray(A, dtype=float)
+    b = np.asarray(b, dtype=float)
+    return float(np.linalg.norm(A @ q - b))
 
 
 def depassements_de_capacite(reseau, q: np.ndarray) -> dict[str, float]:
@@ -94,4 +121,12 @@ def depassements_de_capacite(reseau, q: np.ndarray) -> dict[str, float]:
     Returns:
         Les dépassements par conduite, vide si toutes les capacités sont tenues.
     """
-    raise NotImplementedError("M6, Étape 11, ou section « Limites » du rapport.")
+    q = np.asarray(q, dtype=float)
+    if q.shape != (len(reseau.conduites),):
+        raise ValueError("q doit contenir une valeur par conduite.")
+    depassements = {}
+    for debit, conduite in zip(q, reseau.conduites):
+        excedent = float(debit - conduite.capacite)
+        if excedent > 0:
+            depassements[f"{conduite.source}-{conduite.cible}"] = excedent
+    return depassements

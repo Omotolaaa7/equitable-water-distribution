@@ -12,11 +12,11 @@ sont pas la même chose raccourcie, elles s'arrêtent à des profondeurs différ
 
 ### En 30 secondes
 
-> Une société d'eau alimente huit quartiers depuis deux réservoirs. Elle répartit l'eau
-> proportionnellement à la consommation habituelle, sans jamais avoir vérifié si c'était le
-> meilleur choix. Nous avons construit un outil qui calcule la répartition la moins chère
-> compatible avec la physique du réseau, et qui la teste sur mille journées simulées pour voir
-> si elle tient quand la demande s'écarte des prévisions.
+> Une société d'eau alimente huit quartiers depuis deux réservoirs. Nous comparons sa règle
+> actuelle, qui achemine chaque demande par un plus court chemin sans tenir compte des coûts,
+> à une répartition optimisée par descente de gradient projetée. Sur mille journées simulées,
+> l'optimisation réduit le coût moyen d'environ 4,8 %, tout en mesurant la violation résiduelle
+> due à la pénalisation.
 
 ### En 2 minutes
 
@@ -25,7 +25,7 @@ une équation de conservation, cette équation a plusieurs solutions à cause de
 choisit la moins chère, on transforme la contrainte en pénalité pour pouvoir descendre le
 gradient, on projette pour interdire les débits négatifs, et on refait tout ça mille fois avec
 des demandes tirées au hasard.
-
+ 
 ### En 10 minutes
 
 Le document [01_le_projet_sans_maths.md](01_le_projet_sans_maths.md), section 3, dans l'ordre.
@@ -56,8 +56,10 @@ structure discrète et l'optimisation, ce qui est justement ce que la grille che
 **« Qu'est-ce qui vous dit que votre solution est meilleure ? »**
 
 > Trois mesures, pas une. Le coût technique total, la violation résiduelle de la conservation,
-> et la dispersion des taux de satisfaction entre quartiers. Et sur mille scénarios, avec un
-> test statistique apparié pour vérifier que l'écart n'est pas dans le bruit de la simulation.
+> et la dispersion des taux de satisfaction entre quartiers. Sur mille scénarios, la baisse
+> moyenne de coût est de 4,83 %, avec une taille d'effet de Cohen de 1,47. Cela ne signifie pas
+> que la solution optimisée est meilleure sur tous les critères : sa satisfaction moyenne est
+> légèrement inférieure parce que µ est fini.
 
 ---
 
@@ -97,8 +99,9 @@ C'est la question piège de la partie algèbre. La mauvaise réponse est de donn
 > conditionnement de la hessienne `2C + 2µAᵀA`, qui est toujours inversible dès que les coûts
 > sont strictement positifs.
 >
-> Sur notre réseau, la première quantité vaut 4,724. Le réseau est donc bien conditionné, ce
-> qui était attendu avec quatre boucles pour treize conduites.
+> Sur notre réseau, la première quantité vaut 4,724. Pour la descente, la quantité décisive est
+> plutôt le conditionnement de la Hessienne : à µ=100, il vaut environ 624. Les deux nombres ne
+> répondent pas à la même question.
 
 **« Expliquez-moi le conditionnement comme si je n'y connaissais rien. »**
 
@@ -127,7 +130,8 @@ C'est la question piège de la partie algèbre. La mauvaise réponse est de donn
 
 > Oui, mathématiquement. Avec nos écarts-types, entre quinze et vingt pour cent de la moyenne,
 > il faudrait descendre à cinq écarts-types sous la moyenne, ce qui arrive trois fois sur dix
-> millions. Nous le chiffrons dans le rapport. Le Thème 4 du même énoncé
+> millions. Lors de l'échantillonnage, nous tronquons les tirages à zéro pour respecter la
+> positivité physique. Le Thème 4 du même énoncé
 > impose d'ailleurs une loi tronquée ou log-normale pour cette raison précise.
 
 **« Pourquoi divisez-vous par n moins un ? »**
@@ -309,21 +313,18 @@ C'est la meilleure question du sujet, et il faut l'attendre.
 
 > Le sujet ne demande pas de données réelles, et le plan recommande explicitement un jeu
 > synthétique à condition de défendre sa construction. Nous justifions le nombre de quartiers,
-> l'ordre de grandeur des demandes, le coefficient de variation entre douze et vingt-huit pour
+> l'ordre de grandeur des demandes, le coefficient de variation entre quinze et vingt pour
 > cent, et la corrélation modérée entre quartiers proches.
 
 **« Que se passe-t-il si l'offre totale ne couvre pas la demande tirée ? »**
 
 Question technique que peu de groupes auront préparée.
 
-> La conservation `Aq = b` n'est exactement satisfiable que si l'offre couvre la demande. Sur un
-> scénario tiré au hasard, la somme des demandes n'égale pas la somme des offres. Trois issues
-> possibles : renormaliser l'offre, introduire un nœud de délestage, ou accepter une violation
-> résiduelle qu'on mesure par la norme de `Aq` moins `b`. Nous avons retenu [à compléter par le
-> groupe] et le rapport le justifie.
-
-Cette réponse est à finaliser avec M1 et M4. Le point est signalé dans
-`data/network_config.json`, dans la clé `_a_defendre_dans_le_rapport`.
+> La configuration offre 360 unités pour une demande moyenne de 300. Pour les fluctuations,
+> nous n'ajoutons pas de renormalisation artificielle : la pénalisation accepte une violation
+> résiduelle, que nous mesurons par `||Aq − b||`. Cette décision conserve l'information sur les
+> scénarios difficiles. Une version opérationnelle devrait ajouter un nœud de délestage ou une
+> contrainte de service prioritaire, au lieu de masquer le déficit.
 
 ---
 

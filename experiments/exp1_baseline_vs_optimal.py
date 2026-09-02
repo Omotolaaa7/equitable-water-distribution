@@ -29,11 +29,66 @@ figure devait survivre dans le rapport, ce serait la sienne.
 
 from __future__ import annotations
 
+import csv
+
 import _bootstrap  # noqa: F401
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import numpy as np
+
+from data.generate_network import charger_reseau
+from src.evaluation.baseline import distribution_proportionnelle
+from src.evaluation.compare_strategies import comparer_sur_un_scenario
+from src.evaluation.metrics import taux_de_satisfaction
+from src.graph.build_graph import (
+    construire_matrice_incidence,
+    construire_second_membre,
+    vecteur_couts,
+)
+from src.optimization.gradient_descent import descente_projetee
+from src.probability.demand_model import parametres_demande
+
+MU_PENALISATION = 100.0
 
 
 def main() -> None:
-    raise NotImplementedError("M5, Expérience 1, bloquée par le jalon section 16.")
+    reseau = charger_reseau(_bootstrap.CONFIG)
+    A = construire_matrice_incidence(reseau)
+    demandes, _ = parametres_demande(reseau)
+    b = construire_second_membre(reseau, demandes)
+    q_optimal, historique = descente_projetee(
+        A, b, vecteur_couts(reseau), MU_PENALISATION
+    )
+    q_reference = distribution_proportionnelle(reseau, demandes)
+    comparaison = comparer_sur_un_scenario(reseau, A, demandes, q_optimal)
+
+    with _bootstrap.TABLEAUX.joinpath("exp1_baseline_vs_optimal.csv").open(
+        "w", newline="", encoding="utf-8"
+    ) as fichier:
+        ecrivain = csv.DictWriter(fichier, fieldnames=comparaison.keys())
+        ecrivain.writeheader()
+        ecrivain.writerow(comparaison)
+
+    quartiers = [quartier.identifiant for quartier in reseau.quartiers]
+    plt.figure(figsize=(9, 5))
+    plt.bar(np.arange(len(quartiers)) - 0.2,
+            taux_de_satisfaction(reseau, q_reference, demandes), 0.4,
+            label="Référence")
+    plt.bar(np.arange(len(quartiers)) + 0.2,
+            taux_de_satisfaction(reseau, q_optimal, demandes), 0.4,
+            label="Optimisée")
+    plt.xticks(np.arange(len(quartiers)), quartiers)
+    plt.ylabel("Taux de satisfaction")
+    plt.xlabel("Quartier")
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(_bootstrap.FIGURES / "exp1_baseline_vs_optimal.png", dpi=180)
+    plt.close()
+    print(f"Expérience 1 terminée : coût référence={comparaison['cout_reference']:.2f}, "
+          f"coût optimisé={comparaison['cout_optimise']:.2f}, "
+          f"itérations={historique.n_iterations}")
 
 
 if __name__ == "__main__":

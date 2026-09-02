@@ -45,6 +45,40 @@ def distribution_proportionnelle(reseau, demandes: np.ndarray) -> np.ndarray:
     Returns:
         Les débits de référence, longueur |E|, comparables à q*.
     """
-    raise NotImplementedError(
-        "M6, Étape 11. Fixer et documenter la règle de passage quartiers → conduites."
-    )
+    demandes = np.asarray(demandes, dtype=float)
+    if demandes.shape != (len(reseau.quartiers),):
+      raise ValueError(
+        f"demandes doit être de longueur {len(reseau.quartiers)}, "
+        f"reçu de forme {demandes.shape}."
+      )
+    if np.any(~np.isfinite(demandes)) or np.any(demandes < 0):
+      raise ValueError("demandes doit contenir des valeurs finies positives ou nulles.")
+
+    import networkx as nx
+
+    graphe = nx.DiGraph()
+    for conduite in reseau.conduites:
+      graphe.add_edge(conduite.source, conduite.cible)
+
+    index_conduite = {
+      (conduite.source, conduite.cible): indice
+      for indice, conduite in enumerate(reseau.conduites)
+    }
+    debits = np.zeros(len(reseau.conduites), dtype=float)
+
+    for quartier, demande in zip(reseau.quartiers, demandes):
+      candidats = []
+      for reservoir in reseau.reservoirs:
+        try:
+          chemin = nx.shortest_path(graphe, reservoir.identifiant, quartier.identifiant)
+        except nx.NetworkXNoPath:
+          continue
+        candidats.append((len(chemin), reservoir.identifiant, chemin))
+      if not candidats:
+        raise ValueError(f"Aucun chemin orienté vers le quartier {quartier.identifiant}.")
+
+      _, _, chemin = min(candidats, key=lambda candidat: (candidat[0], candidat[1]))
+      for source, cible in zip(chemin, chemin[1:]):
+        debits[index_conduite[(source, cible)]] += demande
+
+    return debits
