@@ -1,131 +1,47 @@
-\documentclass[11pt,a4paper]{article}
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage[french,provide=*]{babel}
-\usepackage{amsmath,amssymb,amsthm}
-\usepackage{booktabs}
-\usepackage{array}
-\usepackage{longtable}
-\usepackage{geometry}
-\usepackage{enumitem}
-\usepackage{graphicx}
-\usepackage{xcolor}
-\usepackage{hyperref}
-\usepackage{fancyhdr}
+\documentclass[11pt]{ama-article}
 \usepackage{tikz}
-\usepackage[expansion=false]{microtype}
-\usepackage{titlesec}
-\usepackage[font=small,labelfont=bf,textfont=it,margin=8pt]{caption}
 \usetikzlibrary{arrows.meta,positioning,calc,shapes.geometric,decorations.pathreplacing}
-
-% Une unique couleur d'accent, discrète, utilisée pour les titres, les
-% filets et les liens - pas de palette multicolore dans le corps du texte.
-\definecolor{accent}{RGB}{115,30,38}
-
-\hypersetup{
-    colorlinks=true,
-    linkcolor=accent,
-    citecolor=accent,
-    urlcolor=accent
-}
-\geometry{hmargin=2.2cm, vmargin=2.3cm}
-\setlength{\parskip}{0.55em}
-\setlength{\parindent}{0pt}
-\renewcommand{\arraystretch}{1.25}
 \setcounter{MaxMatrixCols}{13}
+\accroche{Here's AMA}
+\siterevue{academiedesmathsappliquees.com}
+\urlrevue{http://academiedesmathsappliquees.com/}
+\fichierlogo{logo-ama}
+\anneeparution{2026}
+\issn{2960-1234/\$}
+\doi{10.5281/ama.2026.0031}
+\droits{Tous droits réservés.}
+\titre{Distribuer l'eau équitablement dans un quartier quand la demande est incertaine}
+\titrecourt{Distribution équitable de l'eau sous incertitude}
+\auteur[*]{Narcisse ATTIOU}{a}{narcisse.attiou@ama.edu}
+\auteur{Aïchatou TRAORÉ}{a}{aichatou.traore@ama.edu}
+\auteur{Omotola AFOUDA}{a}{omotola.afouda@ama.edu}
+\auteur{Godwin AKAKPO}{a}{godwin.akakpo@ama.edu}
+\auteur{Mathilde Sena Phasiline GUEDENON}{a}{mathilde.guedenon@ama.edu}
+\auteur{Clemou Pakychel Désir MOUSSOUNOU}{a}{clemou.moussounou@ama.edu}
+\auteurcourt{N. ATTIOU et al.}
+\affiliation{a}{Académie des Mathématiques Appliquées, Cotonou, Bénin}
+\adressecorrespondance{Académie des Mathématiques Appliquées, Cotonou, Bénin.}
+\motscles{réseau d'eau\\ optimisation quadratique\\ descente de gradient\\ incertitude\\ graphe orienté}
+\encadrant{Ir. Charbel Mamlankou}
+\module{Mathématiques fondamentales pour l'IA -- Thème 3}
+\niveau{2\textsuperscript{e} année}
+\anneeacademique{2025--2026}
 
-% Titres de sections : gras, couleur d'accent, filet fin en dessous
-\titleformat{\section}
-  {\normalfont\Large\bfseries\color{accent}}{\thesection}{0.6em}{}
-  [{\color{accent!60}\titlerule[0.6pt]}]
-\titleformat{\subsection}
-  {\normalfont\large\bfseries\color{accent}}{\thesubsection}{0.6em}{}
-\titleformat{\subsubsection}
-  {\normalfont\normalsize\bfseries}{\thesubsubsection}{0.6em}{}
-\titlespacing*{\section}{0pt}{1.4em}{0.8em}
-\titlespacing*{\subsection}{0pt}{1.1em}{0.5em}
-\titlespacing*{\subsubsection}{0pt}{0.9em}{0.4em}
-
-\pagestyle{fancy}
-\fancyhf{}
-\fancyhead[L]{\small\scshape Thème 3 -- Groupe 1}
-\fancyhead[R]{\small\scshape AMA 2026}
-\fancyfoot[C]{\small\thepage}
-\renewcommand{\headrulewidth}{0.4pt}
-\renewcommand{\headrule}{\hbox to\headwidth{\color{accent!50}\leaders\hrule height \headrulewidth\hfill}}
-
-% Environnements de théorème
-\theoremstyle{plain}
-\newtheorem{theoreme}{Théorème}
-\newtheorem{proposition}{Proposition}
-\newtheorem{corollaire}{Corollaire}
-\theoremstyle{definition}
-\newtheorem{definition}{Définition}
-\theoremstyle{remark}
-\newtheorem{remarque}{Remarque}
-
-% Couleurs et styles TikZ pour le schéma du réseau
 \definecolor{reservoirgreen}{RGB}{65,150,75}
 \definecolor{neighborhoodblue}{RGB}{70,130,200}
 \definecolor{criticalred}{RGB}{210,45,45}
 \definecolor{edgegray}{RGB}{70,70,70}
-
-\tikzset{
-    reservoir/.style={rectangle,draw=black,fill=reservoirgreen!75,
-        minimum width=1.25cm,minimum height=1.25cm,font=\bfseries,inner sep=2pt},
-    quartier/.style={circle,draw=black,fill=neighborhoodblue!35,
-        minimum size=1cm,font=\bfseries,inner sep=1pt},
-    conduit/.style={draw=edgegray,line width=1.1pt,-{Latex[length=2.2mm]}},
-    connexion/.style={draw=black!75,line width=1.1pt,-{Latex[length=2.2mm]}},
-    boucle/.style={draw=black!60,line width=1.1pt,-{Latex[length=2.2mm]}},
+\tikzset{quartier/.style={circle,draw=black,fill=neighborhoodblue!35,minimum size=1cm},
+  reservoir/.style={rectangle,draw=black,fill=reservoirgreen!75,minimum width=1.25cm,minimum height=1.25cm},
+  conduit/.style={draw=edgegray,line width=1.1pt,-{Latex[length=2.2mm]}},
+  connexion/.style={draw=black!75,line width=1.1pt,-{Latex[length=2.2mm]}},
+  boucle/.style={draw=black!60,line width=1.1pt,-{Latex[length=2.2mm]}},
     pont/.style={draw=criticalred,line width=1.5pt,dashed,-{Latex[length=2.2mm]}},
-    edge-label/.style={fill=white,inner sep=1.5pt,font=\scriptsize,midway}
-}
-
-\title{\textbf{Distribuer l'eau équitablement dans un quartier\\quand la demande est incertaine}}
-\date{}
-
+    edge-label/.style={fill=white,inner sep=1.5pt,font=\scriptsize,midway}}
+\resume{Ce travail étudie la répartition équitable de l'eau dans un réseau de conduites lorsque la demande des quartiers est incertaine. Le réseau est modélisé par un graphe orienté et une matrice d'incidence, tandis que les demandes sont représentées par des variables gaussiennes. Nous formulons une optimisation quadratique pénalisant la violation de la conservation des flux et imposons la positivité des débits par projection. La solution est calculée par descente de gradient projetée, puis évaluée sur six expériences numériques et 1000 scénarios Monte-Carlo. Dans le protocole étudié, la stratégie optimisée réduit le coût technique moyen de 4,83\,\% par rapport à la distribution proportionnelle, avec une baisse de la violation moyenne de 13,527 à 3,117.}
+\abstract{This work studies equitable water allocation in a pipe network when district demand is uncertain. The network is modeled by a directed graph and an incidence matrix. We formulate a quadratic optimization problem and solve it with projected gradient descent. Six numerical experiments and 1,000 Monte Carlo scenarios show a 4.83\% reduction in mean technical cost compared with proportional allocation.}
 \begin{document}
-
-\begin{titlepage}
-\centering
-\vspace*{1cm}
-{\large\scshape Académie des Mathématiques Appliquées}\\[0.3cm]
-{\small\itshape Mathématiques fondamentales pour l'IA}\\[2cm]
-
-{\Huge\bfseries\color{accent} Distribuer l'eau équitablement\\[0.3cm] dans un quartier}\\[0.5cm]
-{\Large quand la demande est incertaine}\\[0.6cm]
-{\color{accent!60}\rule{0.35\textwidth}{0.6pt}}\\[1.2cm]
-
-{\large\itshape Thème 3 -- Réseaux, incertitude et optimisation}\\[0.4cm]
-{\large Rapport de projet -- Groupe 1}\\[2cm]
-
-\begin{tabular}{ll}
-\textbf{Superviseur} & Ir. Charbel Mamlankou \\
-\end{tabular}
-
-\vspace{1.2cm}
-{\large\bfseries Membres du groupe}\\[0.5cm]
-\begin{tabular}{ll}
-\toprule
-\textbf{Membre} & \textbf{Nom} \\
-\midrule
-M1 & Narcisse ATTIOU \\
-M2 & Aïchatou Traoré \\
-M3 & Omotola AFOUDA \\
-M4 & Godwin AKAKPO \\
-M5 & Mathilde Sena Phasiline GUEDENON \\
-M6 & Clemou Pakychel Désir MOUSSOUNOU \\
-\bottomrule
-\end{tabular}
-
-\vfill
-{\small\itshape Projet Mathématique -- Académie des Mathématiques Appliquées, 2026}
-\end{titlepage}
-
-\tableofcontents
-\clearpage
-
+\maketitle
 
 \section{Introduction}
 
